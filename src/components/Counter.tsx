@@ -80,7 +80,12 @@ export default function Counter({ id }: { id: string }) {
         <Box display="flex" gap={2}>
           <Button
             variant="contained"
-            color="secondary"
+            sx={{
+              bgcolor: "error.main",
+              "&:hover": {
+                bgcolor: "error.dark",
+              },
+            }}
             onClick={() => updateCounter(-1)}
             startIcon={<RemoveIcon />}
           >
@@ -88,7 +93,12 @@ export default function Counter({ id }: { id: string }) {
           </Button>
           <Button
             variant="contained"
-            color="primary"
+            sx={{
+              bgcolor: "success.main",
+              "&:hover": {
+                bgcolor: "success.dark",
+              },
+            }}
             onClick={() => updateCounter(1)}
             endIcon={<AddIcon />}
           >
