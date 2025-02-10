@@ -63,7 +63,7 @@ describe("Home Component", () => {
     await act(async () => {
       render(<Home />);
     });
-    expect(screen.getByText("Concurrent Counter App")).toBeInTheDocument();
+    expect(screen.getByText("Concurrent Counter")).toBeInTheDocument();
   });
 
   it("fetches and displays counters on load", async () => {
