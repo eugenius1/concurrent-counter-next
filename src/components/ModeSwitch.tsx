@@ -1,13 +1,22 @@
-'use client';
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import { useColorScheme } from '@mui/material/styles';
+"use client";
+import * as React from "react";
+import Box from "@mui/material/Box";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import { Experimental_CssVarsProvider as CssVarsProvider } from "@mui/material/styles";
+import { useColorScheme } from "@mui/material/styles";
 
 export default function ModeSwitch() {
+  return (
+    <CssVarsProvider>
+      <ModeSwitchContent />
+    </CssVarsProvider>
+  );
+}
+
+function ModeSwitchContent() {
   const { mode, setMode } = useColorScheme();
   if (!mode) {
     return null;
@@ -15,8 +24,8 @@ export default function ModeSwitch() {
   return (
     <Box
       sx={{
-        display: 'flex',
-        justifyContent: 'flex-end',
+        display: "flex",
+        justifyContent: "flex-end",
         mt: 1,
         p: 1,
       }}

@@ -3,6 +3,7 @@ import { Box, Button, Typography, Paper } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import { supabase } from "../lib/supabase";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 interface Counter {
   id: string; // ULID is a string
@@ -42,7 +43,7 @@ export default function Counter({ id }: { id: string }) {
           table: "counters",
           filter: `id=eq.${id}`,
         },
-        (payload: any) => {
+        (payload: RealtimePostgresChangesPayload<Counter>) => {
           setCounter(payload.new as Counter);
         }
       )
@@ -54,7 +55,7 @@ export default function Counter({ id }: { id: string }) {
   }, [id]);
 
   const updateCounter = async (incrementBy: number) => {
-    const { data, error } = await supabase.rpc("update_counter", {
+    const { error } = await supabase.rpc("update_counter", {
       counter_id: id,
       increment_by: incrementBy,
     });
@@ -69,7 +70,11 @@ export default function Counter({ id }: { id: string }) {
   }
 
   return (
-    <Paper elevation={3} sx={{ p: 3, maxWidth: 400, mx: "auto", my: 2 }}>
+    <Paper
+      elevation={3}
+      sx={{ p: 3, maxWidth: 400, mx: "auto", my: 2 }}
+      data-testid={`counter-${id}`}
+    >
       <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
         <Typography variant="h4" component="h2">
           Counter #{counter.id.slice(-6)}
