@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Container, Button, Typography, Box } from "@mui/material";
 import Counter from "../components/Counter";
+import Copyright from "../components/Copyright";
 import { supabase } from "../lib/supabase";
 import { ulid } from "ulid";
 
@@ -63,7 +64,7 @@ export default function Home() {
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h3" component="h1" gutterBottom align="center">
-        Concurrent Counter App
+        Concurrent Counter
       </Typography>
 
       <Box display="flex" justifyContent="center" mb={4}>
@@ -80,6 +81,10 @@ export default function Home() {
       {counters.map((id) => (
         <Counter key={id} id={id} />
       ))}
+
+      <Box sx={{ mt: 8, mb: 4 }}>
+        <Copyright />
+      </Box>
     </Container>
   );
 }

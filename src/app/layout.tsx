@@ -10,8 +10,10 @@ export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <title>Concurrent Counter | Eusebius.Tech</title>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/icon/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body>
         <InitColorSchemeScript attribute="class" />
