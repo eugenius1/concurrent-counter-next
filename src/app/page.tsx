@@ -37,7 +37,7 @@ export default function Home() {
           schema: "public",
           table: "counters",
         },
-        (payload: any) => {
+        (payload: { new: { id: string } }) => {
           setCounters((prev) => [...prev, payload.new.id]);
         }
       )
@@ -50,7 +50,7 @@ export default function Home() {
 
   const createCounter = async () => {
     const id = ulid(); // Generate a ULID for the new counter
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("counters")
       .insert([{ id, value: 0 }])
       .select();
