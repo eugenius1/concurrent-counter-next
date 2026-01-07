@@ -5,18 +5,9 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
-import { Experimental_CssVarsProvider as CssVarsProvider } from "@mui/material/styles";
 import { useColorScheme } from "@mui/material/styles";
 
 export default function ModeSwitch() {
-  return (
-    <CssVarsProvider>
-      <ModeSwitchContent />
-    </CssVarsProvider>
-  );
-}
-
-function ModeSwitchContent() {
   const { mode, setMode } = useColorScheme();
   if (!mode) {
     return null;
