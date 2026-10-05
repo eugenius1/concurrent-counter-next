@@ -16,7 +16,7 @@ const config = {
       tsconfig: './tsconfig.json',
     }],
   },
-  testMatch: ['**/__tests__/**/*.test.ts?(x)'],
+  testMatch: ['**/*.test.ts?(x)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },

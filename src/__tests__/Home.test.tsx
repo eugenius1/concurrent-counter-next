@@ -1,160 +1,122 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { act } from "react";
 import Home from "../app/page";
-import { supabase } from "../lib/supabase";
-import { ulid } from "ulid";
 
-// Mock ulid
-jest.mock("ulid");
+// jsdom has no EventSource, so stand in a controllable one
+class MockEventSource {
+  static instances: MockEventSource[] = [];
 
-// Mock supabase
-jest.mock("../lib/supabase", () => ({
-  supabase: {
-    from: jest.fn(),
-    channel: jest.fn(),
-  },
-}));
+  listeners: Record<string, ((event: { data: string }) => void)[]> = {};
+  close = jest.fn();
+
+  constructor(public url: string) {
+    MockEventSource.instances.push(this);
+  }
+
+  addEventListener(type: string, listener: (event: { data: string }) => void) {
+    (this.listeners[type] ??= []).push(listener);
+  }
+
+  emit(type: string, data: unknown) {
+    act(() => {
+      this.listeners[type]?.forEach((listener) =>
+        listener({ data: JSON.stringify(data) }),
+      );
+    });
+  }
+}
 
 describe("Home Component", () => {
   const mockCounters = [
-    "01HQ8XVNZ8YRTKP6QXDJ8W12N3",
-    "01HQ8XVNZ8YRTKP6QXDJ8W12N4",
+    { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: 1 },
+    { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N4", value: 2 },
   ];
 
-  let mockChannel: {
-    on: jest.Mock;
-    subscribe: jest.Mock;
-    unsubscribe: jest.Mock;
-  };
-  let mockFrom: {
-    select: jest.Mock;
-    order: jest.Mock;
-    eq: jest.Mock;
-    single: jest.Mock;
-    insert?: jest.Mock;
+  let mockFetch: jest.Mock;
+
+  const renderHome = () => {
+    const view = render(<Home />);
+    return { ...view, events: MockEventSource.instances[0] };
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
-    // Setup mock channel
-    mockChannel = {
-      on: jest.fn().mockReturnThis(),
-      subscribe: jest.fn().mockReturnThis(),
-      unsubscribe: jest.fn(),
-    };
-    (supabase.channel as jest.Mock).mockReturnValue(mockChannel);
-
-    // Setup default from mock
-    const mockData = mockCounters.map((id) => ({ id }));
-    mockFrom = {
-      select: jest.fn().mockReturnThis(),
-      order: jest.fn().mockResolvedValue({ data: mockData, error: null }),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({
-        data: { id: mockData[0].id, value: 0 },
-        error: null,
-      }),
-    };
-    (supabase.from as jest.Mock).mockReturnValue(mockFrom);
+    MockEventSource.instances = [];
+    global.EventSource = MockEventSource as unknown as typeof EventSource;
+    mockFetch = jest.fn().mockResolvedValue({ ok: true });
+    global.fetch = mockFetch;
   });
 
-  it("renders the title", async () => {
-    await act(async () => {
-      render(<Home />);
-    });
+  it("renders the title", () => {
+    renderHome();
     expect(screen.getByText("Concurrent Counter")).toBeInTheDocument();
   });
 
-  it("fetches and displays counters on load", async () => {
-    await act(async () => {
-      render(<Home />);
-    });
+  it("opens the counter stream and closes it on unmount", () => {
+    const { events, unmount } = renderHome();
 
-    mockCounters.forEach((id) => {
+    expect(events.url).toBe("/api/counters/stream");
+
+    unmount();
+    expect(events.close).toHaveBeenCalled();
+  });
+
+  it("displays the counters from a snapshot", () => {
+    const { events } = renderHome();
+
+    events.emit("snapshot", mockCounters);
+
+    mockCounters.forEach(({ id }) => {
       expect(screen.getByTestId(`counter-${id}`)).toBeInTheDocument();
     });
   });
 
-  it("creates a new counter when button is clicked", async () => {
+  it("updates a counter when it changes", () => {
+    const { events } = renderHome();
+    events.emit("snapshot", mockCounters);
+
+    events.emit("change", { id: mockCounters[0].id, value: 43 });
+
+    expect(screen.getByText("43")).toBeInTheDocument();
+    expect(screen.getAllByTestId(/^counter-/)).toHaveLength(2);
+  });
+
+  it("adds a counter created elsewhere", () => {
+    const { events } = renderHome();
+    events.emit("snapshot", mockCounters);
+
     const newId = "01HQ8XVNZ8YRTKP6QXDJ8W12N5";
-    (ulid as jest.Mock).mockReturnValue(newId);
+    events.emit("change", { id: newId, value: 0 });
 
-    // Mock the Supabase responses
-    const mockInsert = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue({
-        data: [{ id: newId, value: 0 }],
-        error: null,
-      }),
+    expect(screen.getByTestId(`counter-${newId}`)).toBeInTheDocument();
+    expect(screen.getAllByTestId(/^counter-/)).toHaveLength(3);
+  });
+
+  it("creates a new counter when button is clicked", async () => {
+    renderHome();
+
+    fireEvent.click(screen.getByText("Create New Counter"));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith("/api/counters", {
+        method: "POST",
+      });
     });
-
-    mockFrom.insert = mockInsert;
-    (supabase.from as jest.Mock).mockReturnValue(mockFrom);
-
-    await act(async () => {
-      render(<Home />);
-    });
-
-    // Click the create button
-    await act(async () => {
-      fireEvent.click(screen.getByText("Create New Counter"));
-    });
-
-    // Verify that insert was called with correct parameters
-    expect(mockInsert).toHaveBeenCalledWith([{ id: newId, value: 0 }]);
   });
 
   it("shows error in console when counter creation fails", async () => {
-    // Spy on console.error
     const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    mockFetch.mockResolvedValue({ ok: false, status: 500 });
 
-    // Mock the Supabase responses
-    const mockInsert = jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue({
-        data: null,
-        error: new Error("Failed to create counter"),
-      }),
-    });
+    renderHome();
+    fireEvent.click(screen.getByText("Create New Counter"));
 
-    mockFrom.insert = mockInsert;
-    (supabase.from as jest.Mock).mockReturnValue(mockFrom);
-
-    await act(async () => {
-      render(<Home />);
-    });
-
-    // Click the create button
-    await act(async () => {
-      fireEvent.click(screen.getByText("Create New Counter"));
-    });
-
-    // Wait for error to be logged
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error creating counter:",
-        expect.any(Error)
+        expect.any(Error),
       );
     });
 
     consoleSpy.mockRestore();
-  });
-
-  it("subscribes to counter updates", async () => {
-    await act(async () => {
-      render(<Home />);
-    });
-
-    // Verify that channel subscription was created
-    expect(supabase.channel).toHaveBeenCalledWith("counters");
-    expect(mockChannel.on).toHaveBeenCalledWith(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "counters",
-      },
-      expect.any(Function)
-    );
-    expect(mockChannel.subscribe).toHaveBeenCalled();
   });
 });

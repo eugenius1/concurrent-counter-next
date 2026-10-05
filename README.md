@@ -1,45 +1,46 @@
-# Material UI - Next.js App Router example in TypeScript
+# Concurrent Counter
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped using [`create-next-app`](https://github.com/vercel/next.js/tree/HEAD/packages/create-next-app) with Material UI installed.
+[![CI](https://github.com/eugenius1/concurrent-counter-next/actions/workflows/nextjs.yml/badge.svg)](https://github.com/eugenius1/concurrent-counter-next/actions/workflows/nextjs.yml)
 
-## How to use
+Shared counters that everyone sees change at the same moment. Open the page on
+two devices, press a button on one, and the number moves on both.
 
-Download the example [or clone the repo](https://github.com/mui/material-ui):
+A test deployment runs at **<https://test.counter.eusebius.tech>**. To run it
+yourself, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-<!-- #default-branch-switch -->
+## What it does
 
-```bash
-curl https://codeload.github.com/mui/material-ui/tar.gz/v6.x | tar -xz --strip=2  material-ui-v6.x/examples/material-ui-nextjs-ts
-cd material-ui-nextjs-ts
-```
+- **Create New Counter** adds a counter to the page, for everyone who has it
+  open.
+- **Increase** and **Decrease** change a counter by one.
+- Every open page updates as it happens. There is nothing to refresh.
 
-Install it and run:
+For example, two people counting arrivals at different doors can share one
+counter and both always see the running total.
 
-```bash
-npm install
-npm run dev
-```
+## How it behaves
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- No click is lost. If many people press a button at the same instant, every
+  press is counted: 200 simultaneous increases add exactly 200.
+- A counter can go below zero.
+- If your connection drops, the page reconnects on its own and catches up with
+  the current values.
 
-or:
+## Good to know
 
-<!-- #default-branch-switch -->
+- There are no accounts. Anyone with the address can see and change every
+  counter, so don't use it for anything that needs to be private or protected.
+- Counters can't be renamed or deleted. Each is labelled with the last six
+  characters of its id.
+- The light/dark switch in the corner follows your system setting by default.
 
-[![Edit on StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/mui/material-ui/tree/v6.x/examples/material-ui-nextjs-ts)
+## Status
 
-[![Edit on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/github/mui/material-ui/tree/v6.x/examples/material-ui-nextjs-ts)
+Creating, increasing and decreasing counters with live updates all work.
+Renaming, deleting and private counters are not planned yet.
 
-## Learn more
+## Contributing
 
-To learn more about this example:
-
-- [Next.js documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Customizing Material UI](https://mui.com/material-ui/customization/how-to-customize/) - approaches to customizing Material UI.
-
-## What's next?
-
-<!-- #default-branch-switch -->
-
-You now have a working example project.
-You can head back to the documentation and continue by browsing the [templates](https://mui.com/material-ui/getting-started/templates/) section.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to run it locally, how the live
+updates work, and the traps to avoid. Coding agents should start at
+[AGENTS.md](AGENTS.md).
