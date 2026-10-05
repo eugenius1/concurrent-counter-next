@@ -1,45 +1,49 @@
-# Material UI - Next.js App Router example in TypeScript
+# Concurrent Counter
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped using [`create-next-app`](https://github.com/vercel/next.js/tree/HEAD/packages/create-next-app) with Material UI installed.
+Shared counters that stay in sync across every open browser, built with
+[Next.js](https://nextjs.org/) (App Router), [Material UI](https://mui.com/) and
+plain PostgreSQL.
 
-## How to use
+## How it works
 
-Download the example [or clone the repo](https://github.com/mui/material-ui):
+- Counters live in one Postgres table ([db/schema.sql](db/schema.sql)). No extensions are needed.
+- The browser talks only to the Next.js server:
+  - `POST /api/counters` creates a counter.
+  - `POST /api/counters/:id/increment` with `{ "by": 1 }` or `{ "by": -1 }` applies an atomic update.
+  - `GET /api/counters/stream` is a Server-Sent Events stream: a `snapshot` of every counter, then a `change` per insert or update.
+- A trigger calls `pg_notify` on every change. The server holds one `LISTEN` connection and fans notifications out to all open streams.
+- `GET /api/health` returns 200 when the database is reachable and 503 otherwise.
 
-<!-- #default-branch-switch -->
+## Run locally
 
-```bash
-curl https://codeload.github.com/mui/material-ui/tar.gz/v6.x | tar -xz --strip=2  material-ui-v6.x/examples/material-ui-nextjs-ts
-cd material-ui-nextjs-ts
-```
-
-Install it and run:
+Requires Node 22+ and Docker.
 
 ```bash
 npm install
+docker compose up -d db
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). `next dev` reads the local
+database URL from [.env.development](.env.development), and the app creates its
+schema on first use.
 
-or:
+In Claude Code, [.claude/launch.json](.claude/launch.json) defines the same two
+servers as `db` and `web`.
 
-<!-- #default-branch-switch -->
+## Configuration
 
-[![Edit on StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/mui/material-ui/tree/v6.x/examples/material-ui-nextjs-ts)
+| Variable       | Description                                                             |
+| -------------- | ----------------------------------------------------------------------- |
+| `DATABASE_URL` | Postgres connection string, read at runtime. Not needed to build.       |
 
-[![Edit on CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/github/mui/material-ui/tree/v6.x/examples/material-ui-nextjs-ts)
+Connect directly to Postgres, or through a pooler in session mode: `LISTEN`
+does not work through transaction-mode pooling.
 
-## Learn more
+## Checks
 
-To learn more about this example:
+```bash
+npm run validate
+```
 
-- [Next.js documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Customizing Material UI](https://mui.com/material-ui/customization/how-to-customize/) - approaches to customizing Material UI.
-
-## What's next?
-
-<!-- #default-branch-switch -->
-
-You now have a working example project.
-You can head back to the documentation and continue by browsing the [templates](https://mui.com/material-ui/getting-started/templates/) section.
+Runs lint, typecheck, tests and a production build. Run it before opening a PR.

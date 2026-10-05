@@ -4,59 +4,47 @@ import { useState, useEffect } from "react";
 import { Container, Button, Typography, Box } from "@mui/material";
 import Counter from "../components/Counter";
 import Copyright from "../components/Copyright";
-import { supabase } from "../lib/supabase";
-import { ulid } from "ulid";
+
+interface CounterData {
+  id: string; // ULID is a string
+  value: number;
+}
 
 export default function Home() {
-  const [counters, setCounters] = useState<string[]>([]);
+  const [counters, setCounters] = useState<CounterData[]>([]);
 
   useEffect(() => {
-    // Fetch existing counters
-    const fetchCounters = async () => {
-      const { data, error } = await supabase
-        .from("counters")
-        .select("id")
-        .order("id");
+    // One stream for the page: a snapshot of every counter, then live changes.
+    // EventSource reconnects on its own and receives a fresh snapshot.
+    const events = new EventSource("/api/counters/stream");
 
-      if (error) {
-        console.error("Error fetching counters:", error);
-        return;
-      }
+    events.addEventListener("snapshot", (event) => {
+      setCounters(JSON.parse(event.data));
+    });
 
-      setCounters(data.map((counter) => counter.id));
-    };
-
-    fetchCounters();
-
-    // Subscribe to new counters
-    const subscription = supabase
-      .channel("counters")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "counters",
-        },
-        (payload: { new: { id: string } }) => {
-          setCounters((prev) => [...prev, payload.new.id]);
-        }
-      )
-      .subscribe();
+    events.addEventListener("change", (event) => {
+      const changed: CounterData = JSON.parse(event.data);
+      setCounters((prev) =>
+        prev.some((counter) => counter.id === changed.id)
+          ? prev.map((counter) =>
+              counter.id === changed.id ? changed : counter,
+            )
+          : [...prev, changed],
+      );
+    });
 
     return () => {
-      subscription.unsubscribe();
+      events.close();
     };
   }, []);
 
   const createCounter = async () => {
-    const id = ulid(); // Generate a ULID for the new counter
-    const { error } = await supabase
-      .from("counters")
-      .insert([{ id, value: 0 }])
-      .select();
-
-    if (error) {
+    try {
+      const response = await fetch("/api/counters", { method: "POST" });
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
       console.error("Error creating counter:", error);
     }
   };
@@ -78,8 +66,8 @@ export default function Home() {
         </Button>
       </Box>
 
-      {counters.map((id) => (
-        <Counter key={id} id={id} />
+      {counters.map(({ id, value }) => (
+        <Counter key={id} id={id} value={value} />
       ))}
 
       <Box sx={{ mt: 8, mb: 4 }}>
