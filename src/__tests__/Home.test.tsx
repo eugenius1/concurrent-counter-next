@@ -1,36 +1,12 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { act } from "react";
 import Home from "../app/page";
+import { MockEventSource } from "./MockEventSource";
 
-// jsdom has no EventSource, so stand in a controllable one
-class MockEventSource {
-  static instances: MockEventSource[] = [];
-
-  listeners: Record<string, ((event: { data: string }) => void)[]> = {};
-  close = jest.fn();
-
-  constructor(public url: string) {
-    MockEventSource.instances.push(this);
-  }
-
-  addEventListener(type: string, listener: (event: { data: string }) => void) {
-    (this.listeners[type] ??= []).push(listener);
-  }
-
-  emit(type: string, data: unknown) {
-    act(() => {
-      this.listeners[type]?.forEach((listener) =>
-        listener({ data: JSON.stringify(data) }),
-      );
-    });
-  }
-}
+const push = jest.fn();
+jest.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
 describe("Home Component", () => {
-  const mockCounters = [
-    { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: 1 },
-    { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N4", value: 2 },
-  ];
+  const newCounter = { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: 0 };
 
   let mockFetch: jest.Mock;
 
@@ -40,9 +16,11 @@ describe("Home Component", () => {
   };
 
   beforeEach(() => {
-    MockEventSource.instances = [];
-    global.EventSource = MockEventSource as unknown as typeof EventSource;
-    mockFetch = jest.fn().mockResolvedValue({ ok: true });
+    push.mockClear();
+    MockEventSource.install();
+    mockFetch = jest
+      .fn()
+      .mockResolvedValue({ ok: true, json: async () => newCounter });
     global.fetch = mockFetch;
   });
 
@@ -51,7 +29,7 @@ describe("Home Component", () => {
     expect(screen.getByText("Concurrent Counter")).toBeInTheDocument();
   });
 
-  it("opens the counter stream and closes it on unmount", () => {
+  it("opens the count stream and closes it on unmount", () => {
     const { events, unmount } = renderHome();
 
     expect(events.url).toBe("/api/counters/stream");
@@ -60,50 +38,41 @@ describe("Home Component", () => {
     expect(events.close).toHaveBeenCalled();
   });
 
-  it("displays the counters from a snapshot", () => {
+  it("shows how many counters exist and keeps the number current", () => {
     const { events } = renderHome();
+    expect(screen.queryByTestId("counter-count")).not.toBeInTheDocument();
 
-    events.emit("snapshot", mockCounters);
+    events.emit("count", 1);
+    expect(screen.getByText("1 counter created so far")).toBeInTheDocument();
 
-    mockCounters.forEach(({ id }) => {
-      expect(screen.getByTestId(`counter-${id}`)).toBeInTheDocument();
-    });
+    events.emit("count", 1234);
+    expect(
+      screen.getByText("1,234 counters created so far"),
+    ).toBeInTheDocument();
   });
 
-  it("updates a counter when it changes", () => {
+  it("lists no counters", () => {
     const { events } = renderHome();
-    events.emit("snapshot", mockCounters);
 
-    events.emit("change", { id: mockCounters[0].id, value: 43 });
+    events.emit("count", 2);
 
-    expect(screen.getByText("43")).toBeInTheDocument();
-    expect(screen.getAllByTestId(/^counter-/)).toHaveLength(2);
+    expect(screen.queryByTestId(/^counter-0/)).not.toBeInTheDocument();
   });
 
-  it("adds a counter created elsewhere", () => {
-    const { events } = renderHome();
-    events.emit("snapshot", mockCounters);
-
-    const newId = "01HQ8XVNZ8YRTKP6QXDJ8W12N5";
-    events.emit("change", { id: newId, value: 0 });
-
-    expect(screen.getByTestId(`counter-${newId}`)).toBeInTheDocument();
-    expect(screen.getAllByTestId(/^counter-/)).toHaveLength(3);
-  });
-
-  it("creates a new counter when button is clicked", async () => {
+  it("creates a counter and goes to its page", async () => {
     renderHome();
 
     fireEvent.click(screen.getByText("Create New Counter"));
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/api/counters", {
-        method: "POST",
-      });
+      expect(push).toHaveBeenCalledWith(`/c/${newCounter.id}`);
+    });
+    expect(mockFetch).toHaveBeenCalledWith("/api/counters", {
+      method: "POST",
     });
   });
 
-  it("shows error in console when counter creation fails", async () => {
+  it("stays on the homepage when counter creation fails", async () => {
     const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     mockFetch.mockResolvedValue({ ok: false, status: 500 });
 
@@ -116,6 +85,8 @@ describe("Home Component", () => {
         expect.any(Error),
       );
     });
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.getByText("Create New Counter")).toBeEnabled();
 
     consoleSpy.mockRestore();
   });

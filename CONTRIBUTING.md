@@ -43,9 +43,12 @@ Open pull requests against `dev`.
 | [db/schema.sql](db/schema.sql) | The table and the trigger that publishes changes. Applied by the app. |
 | [src/lib/db.ts](src/lib/db.ts) | The `postgres.js` client, schema bootstrap, and id validation. |
 | [src/lib/counterEvents.ts](src/lib/counterEvents.ts) | The one shared `LISTEN` connection and its subscribers. |
-| `src/app/api/counters/` | Route handlers: create, increment, and the event stream. |
+| [src/lib/eventStream.ts](src/lib/eventStream.ts) | The Server-Sent Events response both streams are built on. |
+| `src/app/api/counters/` | Route handlers: create, increment, and the two event streams. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | Health check that queries the database. |
-| [src/app/page.tsx](src/app/page.tsx) | The page: opens the stream and holds every counter's value. |
+| [src/app/page.tsx](src/app/page.tsx) | The homepage: creates a counter and shows how many exist. |
+| [src/app/c/[id]/page.tsx](src/app/c/%5Bid%5D/page.tsx) | A counter's own page: loads it on the server, or returns 404. |
+| [src/components/CounterPage.tsx](src/components/CounterPage.tsx) | The counter page in the browser: opens the stream, shares the link. |
 | [src/components/Counter.tsx](src/components/Counter.tsx) | One counter and its two buttons. |
 | `src/__tests__/`, `*.test.ts` beside routes | Component tests (jsdom) and route tests (node). |
 
@@ -61,19 +64,30 @@ two writes.
   runs a single `UPDATE … SET value = value + $1`. Doing the arithmetic in one
   statement is what makes concurrent presses safe: reading the value and
   writing it back in two steps would lose updates.
-- `GET /api/counters/stream` is a Server-Sent Events stream. It sends a
-  `snapshot` event with every counter, then a `change` event per insert or
+- `GET /api/counters/:id/stream` is a Server-Sent Events stream for one
+  counter. It sends a `change` event with the current value, then another per
   update.
+- `GET /api/counters/stream` is the homepage's stream. It sends a `count`
+  event with the number of counters, and again whenever one is created.
+
+There are no accounts, so a counter's link is what grants access to it: the
+id is an unguessable ULID and `/c/:id` is the only way in. Nothing may list
+ids for that reason. The homepage stream carries a number and no ids, and
+each counter stream filters to its own id.
 
 Live updates come from Postgres itself. A trigger calls `pg_notify` on every
-insert and update, the server holds one `LISTEN` connection for the whole
-process, and each notification is fanned out to all open streams. Because the
+insert and update, saying whether the row is new, the server holds one
+`LISTEN` connection for the whole process, and each notification is fanned
+out to all open streams. Because the
 trigger fires for any write, changes made outside the app (for example in
 `psql`) reach the browsers too.
 
-A stream subscribes before it loads its snapshot and holds back any changes
-that arrive in between, replaying them after the snapshot. Subscribing second
-would leave a gap in which a change could be missed for good.
+A counter stream subscribes before it loads the current value and holds back
+any changes that arrive in between, replaying them after it. Subscribing
+second would leave a gap in which a change could be missed for good. The
+homepage stream subscribes first for the same reason, and recounts on every
+new counter rather than adding one, so a counter created in that gap is never
+counted twice.
 
 The client never patches its own state after a write. It waits for the
 `change` event like every other browser, so there is one path for updates and
@@ -81,7 +95,7 @@ no way for a tab to disagree with the database.
 
 If the `LISTEN` connection drops and reconnects, notifications may have been
 missed, so the server closes every open stream. `EventSource` reconnects by
-itself and the new stream starts with a fresh snapshot.
+itself and the new stream starts with the current value or count.
 
 The schema is applied from `db/schema.sql` the first time the database is
 used, inside a transaction holding an advisory lock so that several instances

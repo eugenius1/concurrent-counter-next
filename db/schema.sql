@@ -6,14 +6,15 @@ CREATE TABLE IF NOT EXISTS counters(
   created_at timestamp with time zone DEFAULT NOW() NOT NULL
 );
 
--- Publish every insert and update so the app can fan changes out to browsers
+-- Publish every insert and update so the app can fan changes out to browsers.
+-- `created` tells a new counter from a changed one, for the homepage total.
 CREATE OR REPLACE FUNCTION notify_counter_change()
   RETURNS TRIGGER
   LANGUAGE plpgsql
   AS $$
 BEGIN
   PERFORM
-    pg_notify('counter_changes', json_build_object('id', NEW.id, 'value', NEW.value)::text);
+    pg_notify('counter_changes', json_build_object('id', NEW.id, 'value', NEW.value, 'created', TG_OP = 'INSERT')::text);
   RETURN NEW;
 END;
 $$;

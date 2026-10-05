@@ -3,7 +3,7 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 
 export default function Counter({ id, value }: { id: string; value: number }) {
-  // The new value arrives through the page's event stream
+  // The new value arrives through the counter page's event stream
   const updateCounter = async (incrementBy: number) => {
     try {
       const response = await fetch(`/api/counters/${id}/increment`, {
