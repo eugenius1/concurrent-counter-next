@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "@/theme";
 import ModeSwitch from "@/components/ModeSwitch";

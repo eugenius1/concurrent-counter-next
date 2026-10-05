@@ -67,7 +67,7 @@ export default function Home() {
         Concurrent Counter
       </Typography>
 
-      <Box display="flex" justifyContent="center" mb={4}>
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
         <Button
           variant="contained"
           color="primary"
