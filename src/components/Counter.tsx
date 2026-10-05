@@ -75,14 +75,21 @@ export default function Counter({ id }: { id: string }) {
       sx={{ p: 3, maxWidth: 400, mx: "auto", my: 2 }}
       data-testid={`counter-${id}`}
     >
-      <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 2,
+        }}
+      >
         <Typography variant="h4" component="h2">
           Counter #{counter.id.slice(-6)}
         </Typography>
         <Typography variant="h2" component="div">
           {counter.value}
         </Typography>
-        <Box display="flex" gap={2}>
+        <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             variant="contained"
             sx={{
