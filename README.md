@@ -1,49 +1,46 @@
 # Concurrent Counter
 
-Shared counters that stay in sync across every open browser, built with
-[Next.js](https://nextjs.org/) (App Router), [Material UI](https://mui.com/) and
-plain PostgreSQL.
+[![CI](https://github.com/eugenius1/concurrent-counter-next/actions/workflows/nextjs.yml/badge.svg)](https://github.com/eugenius1/concurrent-counter-next/actions/workflows/nextjs.yml)
 
-## How it works
+Shared counters that everyone sees change at the same moment. Open the page on
+two devices, press a button on one, and the number moves on both.
 
-- Counters live in one Postgres table ([db/schema.sql](db/schema.sql)). No extensions are needed.
-- The browser talks only to the Next.js server:
-  - `POST /api/counters` creates a counter.
-  - `POST /api/counters/:id/increment` with `{ "by": 1 }` or `{ "by": -1 }` applies an atomic update.
-  - `GET /api/counters/stream` is a Server-Sent Events stream: a `snapshot` of every counter, then a `change` per insert or update.
-- A trigger calls `pg_notify` on every change. The server holds one `LISTEN` connection and fans notifications out to all open streams.
-- `GET /api/health` returns 200 when the database is reachable and 503 otherwise.
+A test deployment runs at **<https://test.counter.eusebius.tech>**. To run it
+yourself, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Run locally
+## What it does
 
-Requires Node 22+ and Docker.
+- **Create New Counter** adds a counter to the page, for everyone who has it
+  open.
+- **Increase** and **Decrease** change a counter by one.
+- Every open page updates as it happens. There is nothing to refresh.
 
-```bash
-npm install
-docker compose up -d db
-npm run dev
-```
+For example, two people counting arrivals at different doors can share one
+counter and both always see the running total.
 
-Open [http://localhost:3000](http://localhost:3000). `next dev` reads the local
-database URL from [.env.development](.env.development), and the app creates its
-schema on first use.
+## How it behaves
 
-In Claude Code, [.claude/launch.json](.claude/launch.json) defines the same two
-servers as `db` and `web`.
+- No click is lost. If many people press a button at the same instant, every
+  press is counted: 200 simultaneous increases add exactly 200.
+- A counter can go below zero.
+- If your connection drops, the page reconnects on its own and catches up with
+  the current values.
 
-## Configuration
+## Good to know
 
-| Variable       | Description                                                             |
-| -------------- | ----------------------------------------------------------------------- |
-| `DATABASE_URL` | Postgres connection string, read at runtime. Not needed to build.       |
+- There are no accounts. Anyone with the address can see and change every
+  counter, so don't use it for anything that needs to be private or protected.
+- Counters can't be renamed or deleted. Each is labelled with the last six
+  characters of its id.
+- The light/dark switch in the corner follows your system setting by default.
 
-Connect directly to Postgres, or through a pooler in session mode: `LISTEN`
-does not work through transaction-mode pooling.
+## Status
 
-## Checks
+Creating, increasing and decreasing counters with live updates all work.
+Renaming, deleting and private counters are not planned yet.
 
-```bash
-npm run validate
-```
+## Contributing
 
-Runs lint, typecheck, tests and a production build. Run it before opening a PR.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to run it locally, how the live
+updates work, and the traps to avoid. Coding agents should start at
+[AGENTS.md](AGENTS.md).
