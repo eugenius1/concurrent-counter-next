@@ -4,7 +4,9 @@ import postgres from "postgres";
 
 export interface Counter {
   id: string; // ULID is a string
-  value: number;
+  // A 64-bit integer in decimal: it can exceed what a JS number holds exactly,
+  // so it stays a string from the database to the page
+  value: string;
 }
 
 type Sql = ReturnType<typeof postgres>;

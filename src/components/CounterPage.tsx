@@ -12,7 +12,7 @@ export default function CounterPage({
   initialValue,
 }: {
   id: string;
-  initialValue: number;
+  initialValue: string;
 }) {
   const [notice, setNotice] = useState("");
 

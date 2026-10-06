@@ -7,7 +7,7 @@ const push = jest.fn();
 jest.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
 describe("Home Component", () => {
-  const newCounter = { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: 0 };
+  const newCounter = { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: "0" };
 
   let mockFetch: jest.Mock;
 
@@ -58,10 +58,10 @@ describe("Home Component", () => {
     events.emit("count", 3);
     expect(screen.queryByTestId(/^counter-0/)).not.toBeInTheDocument();
 
-    demoEvents.emit("change", { id: DEMO_COUNTER_ID, value: 12 });
+    demoEvents.emit("change", { id: DEMO_COUNTER_ID, value: "12" });
     expect(screen.getByText("12")).toBeInTheDocument();
 
-    demoEvents.emit("change", { id: DEMO_COUNTER_ID, value: 13 });
+    demoEvents.emit("change", { id: DEMO_COUNTER_ID, value: "13" });
     expect(screen.getByText("13")).toBeInTheDocument();
     expect(screen.getAllByTestId(/^counter-0/)).toHaveLength(1);
   });

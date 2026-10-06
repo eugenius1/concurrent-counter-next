@@ -3,7 +3,7 @@ import Counter from "../components/Counter";
 
 const mockCounter = {
   id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3",
-  value: 42,
+  value: "42",
 };
 
 describe("Counter Component", () => {

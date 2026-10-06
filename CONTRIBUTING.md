@@ -99,6 +99,12 @@ homepage stream subscribes first for the same reason, and recounts on every
 new counter rather than adding one, so a counter created in that gap is never
 counted twice.
 
+A value is a 64-bit integer (`bigint`), which is more than a JavaScript number
+holds exactly, so it is a decimal string all the way from the database to the
+page: `postgres.js` returns `bigint` as a string, the trigger sends it as text,
+and nothing parses it. Turning it into a number anywhere brings back rounding
+past 2^53.
+
 The client never patches its own state after a write. It waits for the
 `change` event like every other browser, so there is one path for updates and
 no way for a tab to disagree with the database.
@@ -126,7 +132,9 @@ in `src/lib/db.ts` is created on first call for that reason; a top-level
 
 **`db/schema.sql` runs on every cold start, so it must stay idempotent.** Use
 `IF NOT EXISTS` and `CREATE OR REPLACE`. A plain `CREATE` or an `ALTER` that
-fails the second time makes every request fail after the next restart. The
+fails the second time makes every request fail after the next restart. Changing
+an existing table goes in a `DO` block that checks whether the change is still
+needed, as the widening of `value` to `bigint` does. The
 file is read from disk at runtime, so it also has to ship with the app.
 
 **Route tests need the node environment.** Jest defaults to jsdom here, which

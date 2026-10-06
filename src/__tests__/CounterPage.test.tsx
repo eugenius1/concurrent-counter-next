@@ -8,7 +8,7 @@ describe("CounterPage Component", () => {
   let writeText: jest.Mock;
 
   const renderPage = () => {
-    const view = render(<CounterPage id={id} initialValue={7} />);
+    const view = render(<CounterPage id={id} initialValue="7" />);
     return { ...view, events: MockEventSource.instances[0] };
   };
 
@@ -41,7 +41,7 @@ describe("CounterPage Component", () => {
   it("updates the value when it changes", () => {
     const { events } = renderPage();
 
-    events.emit("change", { id, value: 43 });
+    events.emit("change", { id, value: "43" });
 
     expect(screen.getByText("43")).toBeInTheDocument();
   });

@@ -48,7 +48,7 @@ describe("GET /api/counters/stream", () => {
     expect(await read()).toBe("event: count\ndata: 2\n\n");
 
     sql.mockResolvedValue([{ count: 3 }]);
-    subscriber.onChange({ id, value: 0, created: true });
+    subscriber.onChange({ id, value: "0", created: true });
     expect(await read()).toBe("event: count\ndata: 3\n\n");
 
     abort.abort();
@@ -58,7 +58,7 @@ describe("GET /api/counters/stream", () => {
     const { read, abort } = await open();
     await read();
 
-    subscriber.onChange({ id, value: 5, created: false });
+    subscriber.onChange({ id, value: "5", created: false });
     abort.abort();
 
     expect(await read()).toBeNull();

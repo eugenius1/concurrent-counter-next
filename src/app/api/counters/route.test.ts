@@ -7,7 +7,7 @@ jest.mock("ulid", () => ({ ulid: () => "01HQ8XVNZ8YRTKP6QXDJ8W12N3" }));
 
 describe("POST /api/counters", () => {
   it("creates a counter with a generated id", async () => {
-    const counter = { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: 0 };
+    const counter = { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: "0" };
     const sql = jest.fn().mockResolvedValue([counter]);
     (db as jest.Mock).mockResolvedValue(sql);
 

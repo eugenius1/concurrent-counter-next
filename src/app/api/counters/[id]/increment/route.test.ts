@@ -22,7 +22,7 @@ describe("POST /api/counters/[id]/increment", () => {
   let sql: jest.Mock;
 
   beforeEach(() => {
-    sql = jest.fn().mockResolvedValue([{ id, value: 43 }]);
+    sql = jest.fn().mockResolvedValue([{ id, value: "43" }]);
     (db as jest.Mock).mockResolvedValue(sql);
   });
 
@@ -30,7 +30,7 @@ describe("POST /api/counters/[id]/increment", () => {
     const response = await increment(id, { by });
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ id, value: 43 });
+    expect(await response.json()).toEqual({ id, value: "43" });
     expect(sql.mock.calls[0]).toEqual(expect.arrayContaining([by, id]));
   });
 

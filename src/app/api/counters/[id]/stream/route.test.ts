@@ -12,7 +12,7 @@ jest.mock("@/lib/db", () => ({
 }));
 jest.mock("@/lib/counterEvents", () => ({ subscribeToCounters: jest.fn() }));
 
-const counter = { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: 1 };
+const counter = { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: "1" };
 const otherId = "01HQ8XVNZ8YRTKP6QXDJ8W12N4";
 
 const change = (data: unknown) =>
@@ -55,8 +55,8 @@ describe("GET /api/counters/:id/stream", () => {
     expect(await read()).toBe(change(counter));
     expect(sql.mock.calls[0]).toContain(counter.id);
 
-    subscriber.onChange({ id: counter.id, value: 5, created: false });
-    expect(await read()).toBe(change({ id: counter.id, value: 5 }));
+    subscriber.onChange({ id: counter.id, value: "5", created: false });
+    expect(await read()).toBe(change({ id: counter.id, value: "5" }));
 
     abort.abort();
   });
@@ -65,10 +65,10 @@ describe("GET /api/counters/:id/stream", () => {
     const { read, abort } = await open();
     await read();
 
-    subscriber.onChange({ id: otherId, value: 9, created: false });
-    subscriber.onChange({ id: counter.id, value: 2, created: false });
+    subscriber.onChange({ id: otherId, value: "9", created: false });
+    subscriber.onChange({ id: counter.id, value: "2", created: false });
 
-    expect(await read()).toBe(change({ id: counter.id, value: 2 }));
+    expect(await read()).toBe(change({ id: counter.id, value: "2" }));
     abort.abort();
   });
 
@@ -78,11 +78,11 @@ describe("GET /api/counters/:id/stream", () => {
 
     const { read, abort } = await open();
     await new Promise((resolve) => setTimeout(resolve));
-    subscriber.onChange({ id: counter.id, value: 2, created: false });
+    subscriber.onChange({ id: counter.id, value: "2", created: false });
     resolveQuery([counter]);
 
     expect(await read()).toBe(change(counter));
-    expect(await read()).toBe(change({ id: counter.id, value: 2 }));
+    expect(await read()).toBe(change({ id: counter.id, value: "2" }));
     abort.abort();
   });
 

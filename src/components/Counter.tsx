@@ -2,7 +2,7 @@ import { Box, Button, Typography, Paper } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 
-export default function Counter({ id, value }: { id: string; value: number }) {
+export default function Counter({ id, value }: { id: string; value: string }) {
   // The new value arrives through the counter page's event stream
   const updateCounter = async (incrementBy: number) => {
     try {
