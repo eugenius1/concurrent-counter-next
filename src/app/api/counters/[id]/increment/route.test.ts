@@ -1,6 +1,7 @@
 /** @jest-environment node */
 import { POST } from "./route";
 import { db } from "@/lib/db";
+import { INCREMENT_LIMIT } from "@/lib/rateLimit";
 
 jest.mock("@/lib/db", () => ({
   ...jest.requireActual("@/lib/db"),
@@ -9,11 +10,16 @@ jest.mock("@/lib/db", () => ({
 
 const id = "01HQ8XVNZ8YRTKP6QXDJ8W12N3";
 
-const increment = (counterId: string, body: unknown) =>
+const increment = (
+  counterId: string,
+  body: unknown,
+  headers: Record<string, string> = {},
+) =>
   POST(
     new Request(`http://localhost/api/counters/${counterId}/increment`, {
       method: "POST",
       body: JSON.stringify(body),
+      headers,
     }),
     { params: Promise.resolve({ id: counterId }) },
   );
@@ -57,5 +63,28 @@ describe("POST /api/counters/[id]/increment", () => {
     const response = await increment(id, { by: 1 });
 
     expect(response.status).toBe(404);
+  });
+
+  it("rejects a request sent from another site", async () => {
+    const response = await increment(
+      id,
+      { by: 1 },
+      { Origin: "https://evil.example", Host: "localhost" },
+    );
+
+    expect(response.status).toBe(403);
+    expect(sql).not.toHaveBeenCalled();
+  });
+
+  it("answers 429 once a client has used its burst", async () => {
+    const client = { "X-Forwarded-For": "203.0.113.9" };
+
+    for (let i = 0; i < INCREMENT_LIMIT.burst; i++) {
+      expect((await increment(id, { by: 1 }, client)).status).toBe(200);
+    }
+    const response = await increment(id, { by: 1 }, client);
+
+    expect(response.status).toBe(429);
+    expect(sql).toHaveBeenCalledTimes(INCREMENT_LIMIT.burst);
   });
 });

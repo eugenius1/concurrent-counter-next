@@ -1,6 +1,7 @@
 /** @jest-environment node */
 import { GET } from "./route";
 import { db } from "@/lib/db";
+import { MAX_STREAMS } from "@/lib/rateLimit";
 import {
   subscribeToCounters,
   type CounterSubscriber,
@@ -23,10 +24,14 @@ describe("GET /api/counters/:id/stream", () => {
   let unsubscribe: jest.Mock;
   let sql: jest.Mock;
 
-  const open = async (id = counter.id) => {
+  const open = async (
+    id = counter.id,
+    headers: Record<string, string> = {},
+  ) => {
     const abort = new AbortController();
     const request = new Request(`http://localhost/api/counters/${id}/stream`, {
       signal: abort.signal,
+      headers,
     });
     const response = await GET(request, { params: Promise.resolve({ id }) });
     const reader = response.body!.getReader();
@@ -111,5 +116,21 @@ describe("GET /api/counters/:id/stream", () => {
 
     expect(await read()).toBeNull();
     expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  it("answers 429 past a client's share of streams, until one ends", async () => {
+    const client = { "X-Forwarded-For": "203.0.113.9" };
+    const streams = [];
+    for (let i = 0; i < MAX_STREAMS; i++) {
+      streams.push(await open(counter.id, client));
+    }
+
+    expect((await open(counter.id, client)).response.status).toBe(429);
+
+    streams[0].abort.abort();
+    const replacement = await open(counter.id, client);
+    expect(replacement.response.status).toBe(200);
+
+    [...streams, replacement].forEach(({ abort }) => abort.abort());
   });
 });

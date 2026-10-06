@@ -47,6 +47,9 @@ Open pull requests against `dev`.
 | [src/lib/db.ts](src/lib/db.ts) | The `postgres.js` client, schema bootstrap, and id validation. |
 | [src/lib/counterEvents.ts](src/lib/counterEvents.ts) | The one shared `LISTEN` connection and its subscribers. |
 | [src/lib/eventStream.ts](src/lib/eventStream.ts) | The Server-Sent Events response both streams are built on. |
+| [src/lib/counterCount.ts](src/lib/counterCount.ts) | The number of counters, read once and shared by every homepage stream. |
+| [src/lib/rateLimit.ts](src/lib/rateLimit.ts) | Per-client limits on writes and on open streams, and the limits themselves. |
+| [src/lib/sameOrigin.ts](src/lib/sameOrigin.ts) | Rejects writes that another website made a browser send. |
 | `src/app/api/counters/` | Route handlers: create, increment, and the two event streams. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | Health check that queries the database. |
 | [src/app/page.tsx](src/app/page.tsx) | The homepage: creates a counter, shows how many exist, and shows the demo counter. |
@@ -95,9 +98,14 @@ trigger fires for any write, changes made outside the app (for example in
 A counter stream subscribes before it loads the current value and holds back
 any changes that arrive in between, replaying them after it. Subscribing
 second would leave a gap in which a change could be missed for good. The
-homepage stream subscribes first for the same reason, and recounts on every
-new counter rather than adding one, so a counter created in that gap is never
-counted twice.
+homepage count subscribes first for the same reason, and recounts when a
+counter is created rather than adding one, so a counter created in that gap is
+never counted twice.
+
+Every homepage stream shares that one count. `src/lib/counterCount.ts` reads
+it at most once a second, however many counters are created, and always once
+more after the last of them, so the number shown ends up right. Counting per
+stream meant each insert ran one `count(*)` for every open homepage.
 
 A value is a 64-bit integer (`bigint`), which is more than a JavaScript number
 holds exactly, so it is a decimal string all the way from the database to the
@@ -110,8 +118,29 @@ The client never patches its own state after a write. It waits for the
 no way for a tab to disagree with the database.
 
 If the `LISTEN` connection drops and reconnects, notifications may have been
-missed, so the server closes every open stream. `EventSource` reconnects by
-itself and the new stream starts with the current value or count.
+missed, so the server closes every open counter stream. `EventSource`
+reconnects by itself and the new stream starts with the current value. The
+homepage count is simply read again.
+
+### Limits on use
+
+There are no accounts, so a client is its network address: an IPv4 address,
+or the /64 of an IPv6 one. `src/lib/rateLimit.ts` holds the numbers.
+
+| What | Limit per client | Past it |
+| --- | --- | --- |
+| Creating a counter | 5 at once, then 5 a minute | `429` with `Retry-After` |
+| Pressing a counter | 20 at once, then 10 a second | `429` with `Retry-After` |
+| Open event streams | 40 | `429` |
+
+Both writes also answer `403` to a request that a page on another origin made
+a browser send, judged by `Sec-Fetch-Site`, or by `Origin` against `Host` in
+browsers that don't send it. Otherwise any website could press or create
+counters from each of its visitors' addresses, and no per-address limit would
+notice. A request with neither header is not from a browser and is allowed.
+
+These stop one script or one hostile page. They do not stop someone with many
+addresses; that needs a limit at the proxy or a challenge in front of it.
 
 The schema is applied from `db/schema.sql` the first time the database is
 used, inside a transaction holding an advisory lock so that several instances
@@ -146,6 +175,23 @@ has no `Request` or `Response`. Start each route test with
 `Cache-Control: no-transform` and `X-Accel-Buffering: no`, and sends a comment
 line every 25 seconds so proxies keep the idle connection open. Remove those
 and events arrive late, in batches, or not at all behind a proxy.
+
+**The client address comes from the last entry of `X-Forwarded-For`.** That
+is the one the proxy in front of the app wrote; everything before it is
+whatever the client sent. It is right for one proxy, which is what Coolify
+gives. Put a second one in front (a CDN, say) and every visitor has the CDN's
+address and shares one set of limits; reached with no proxy at all, the header
+is the client's to forge. Without the header, as in local development, all
+requests count as one client.
+
+**The limits live in the memory of one process.** Run two instances and each
+client gets twice the allowance; a restart forgets everything. Moving them
+into Postgres or the proxy fixes that, when it matters.
+
+**`EventSource` gives up after a `429`.** It reconnects after a dropped
+connection but not after an error status, so a client refused a stream shows
+no live updates until the page is reloaded. The stream limit is set high
+enough that only abuse should meet it.
 
 **TypeScript is held at 6.** `typescript-eslint` (through `eslint-config-next`)
 and `ts-jest` don't support 7 yet; upgrading fails at install with a peer
