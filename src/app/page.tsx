@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Container, Button, Typography, Box } from "@mui/material";
+import AddCircleOutlinedIcon from "@mui/icons-material/AddCircleOutlined";
 import Copyright from "../components/Copyright";
 import LiveCounter from "../components/LiveCounter";
 import { DEMO_COUNTER_ID } from "../lib/demoCounter";
@@ -44,10 +45,7 @@ export default function Home() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom align="center">
-        Concurrent Counter
-      </Typography>
-      <Typography align="center" sx={{ mb: 4, color: "text.secondary" }}>
+      <Typography variant="h5" component="h1" align="center" sx={{ mb: 4 }}>
         Create a counter, share its link, and everyone with the link sees it
         change at the same moment.
       </Typography>
@@ -58,6 +56,8 @@ export default function Home() {
           color="primary"
           onClick={createCounter}
           loading={creating}
+          loadingPosition="start"
+          startIcon={<AddCircleOutlinedIcon />}
           size="large"
         >
           Create New Counter

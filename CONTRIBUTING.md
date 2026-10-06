@@ -54,7 +54,7 @@ Open pull requests against `dev`.
 | [src/components/CounterPage.tsx](src/components/CounterPage.tsx) | The counter page in the browser: the counter and the buttons that share its link. |
 | [src/components/LiveCounter.tsx](src/components/LiveCounter.tsx) | A counter kept current by its own event stream. |
 | [src/components/Counter.tsx](src/components/Counter.tsx) | One counter and its two buttons. |
-| [src/components/Header.tsx](src/components/Header.tsx) | The icon that links home and the theme switch, on every page. |
+| [src/components/Header.tsx](src/components/Header.tsx) | The icon and app name that link home, and the theme switch, on every page. |
 | [src/lib/demoCounter.ts](src/lib/demoCounter.ts) | The id of the counter shown on the homepage. |
 | `src/__tests__/`, `*.test.ts` beside routes | Component tests (jsdom) and route tests (node). |
 

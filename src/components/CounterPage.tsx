@@ -41,10 +41,6 @@ export default function CounterPage({
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom align="center">
-        Concurrent Counter
-      </Typography>
-
       <LiveCounter id={id} initialValue={initialValue} />
 
       <Typography align="center" sx={{ mt: 4, mb: 2, color: "text.secondary" }}>

@@ -18,7 +18,7 @@ yourself, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Increase** and **Decrease** change the counter by one.
 - Every open copy of the page updates as it happens. There is nothing to
   refresh.
-- The icon in the top left corner leads back to the homepage.
+- The app name in the top left corner leads back to the homepage.
 - The homepage shows how many counters have been created, and one counter that
   every visitor shares, to try it out.
 

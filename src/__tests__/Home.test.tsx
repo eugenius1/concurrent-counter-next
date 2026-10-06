@@ -31,11 +31,6 @@ describe("Home Component", () => {
     global.fetch = mockFetch;
   });
 
-  it("renders the title", () => {
-    renderHome();
-    expect(screen.getByText("Concurrent Counter")).toBeInTheDocument();
-  });
-
   it("opens the count stream and closes it on unmount", () => {
     const { events, unmount } = renderHome();
 
