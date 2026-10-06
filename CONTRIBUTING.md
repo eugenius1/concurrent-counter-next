@@ -21,8 +21,11 @@ point at another database, set `DATABASE_URL` in `.env.local`, which git
 ignores. The app creates its schema on first use, so a fresh database needs no
 setup.
 
-In Claude Code, [.claude/launch.json](.claude/launch.json) defines the same two
-servers as `db` and `web`.
+In Claude Code, [.claude/launch.json](.claude/launch.json) defines `web`, which
+starts the database and then the dev server. The database is not an entry of
+its own because each entry opens a browser tab at its port, and a tab pointed
+at Postgres never finishes loading. It keeps running after the preview stops;
+`docker compose stop db` stops it.
 
 `npm run validate` is the gate: lint, typecheck, every test and a production
 build. Run it before every commit. CI runs the same steps.
@@ -43,10 +46,16 @@ Open pull requests against `dev`.
 | [db/schema.sql](db/schema.sql) | The table and the trigger that publishes changes. Applied by the app. |
 | [src/lib/db.ts](src/lib/db.ts) | The `postgres.js` client, schema bootstrap, and id validation. |
 | [src/lib/counterEvents.ts](src/lib/counterEvents.ts) | The one shared `LISTEN` connection and its subscribers. |
-| `src/app/api/counters/` | Route handlers: create, increment, and the event stream. |
+| [src/lib/eventStream.ts](src/lib/eventStream.ts) | The Server-Sent Events response both streams are built on. |
+| `src/app/api/counters/` | Route handlers: create, increment, and the two event streams. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | Health check that queries the database. |
-| [src/app/page.tsx](src/app/page.tsx) | The page: opens the stream and holds every counter's value. |
+| [src/app/page.tsx](src/app/page.tsx) | The homepage: creates a counter, shows how many exist, and shows the demo counter. |
+| [src/app/c/[id]/page.tsx](src/app/c/%5Bid%5D/page.tsx) | A counter's own page: loads it on the server, or returns 404. |
+| [src/components/CounterPage.tsx](src/components/CounterPage.tsx) | The counter page in the browser: the counter and the buttons that share its link. |
+| [src/components/LiveCounter.tsx](src/components/LiveCounter.tsx) | A counter kept current by its own event stream. |
 | [src/components/Counter.tsx](src/components/Counter.tsx) | One counter and its two buttons. |
+| [src/components/Header.tsx](src/components/Header.tsx) | The icon and app name that link home, and the theme switch, on every page. |
+| [src/lib/demoCounter.ts](src/lib/demoCounter.ts) | The id of the counter shown on the homepage. |
 | `src/__tests__/`, `*.test.ts` beside routes | Component tests (jsdom) and route tests (node). |
 
 ## How it works
@@ -61,19 +70,34 @@ two writes.
   runs a single `UPDATE … SET value = value + $1`. Doing the arithmetic in one
   statement is what makes concurrent presses safe: reading the value and
   writing it back in two steps would lose updates.
-- `GET /api/counters/stream` is a Server-Sent Events stream. It sends a
-  `snapshot` event with every counter, then a `change` event per insert or
+- `GET /api/counters/:id/stream` is a Server-Sent Events stream for one
+  counter. It sends a `change` event with the current value, then another per
   update.
+- `GET /api/counters/stream` is the homepage's stream. It sends a `count`
+  event with the number of counters, and again whenever one is created.
+
+There are no accounts, so a counter's link is what grants access to it: the
+id is an unguessable ULID and `/c/:id` is the only way in. Nothing may list
+ids for that reason. The homepage stream carries a number and no ids, and
+each counter stream filters to its own id.
+
+The one exception is the demo counter. `db/schema.sql` seeds a counter with a
+fixed id, and the homepage shows it to every visitor through the same
+per-counter stream, so there is something to press before creating one.
 
 Live updates come from Postgres itself. A trigger calls `pg_notify` on every
-insert and update, the server holds one `LISTEN` connection for the whole
-process, and each notification is fanned out to all open streams. Because the
+insert and update, saying whether the row is new, the server holds one
+`LISTEN` connection for the whole process, and each notification is fanned
+out to all open streams. Because the
 trigger fires for any write, changes made outside the app (for example in
 `psql`) reach the browsers too.
 
-A stream subscribes before it loads its snapshot and holds back any changes
-that arrive in between, replaying them after the snapshot. Subscribing second
-would leave a gap in which a change could be missed for good.
+A counter stream subscribes before it loads the current value and holds back
+any changes that arrive in between, replaying them after it. Subscribing
+second would leave a gap in which a change could be missed for good. The
+homepage stream subscribes first for the same reason, and recounts on every
+new counter rather than adding one, so a counter created in that gap is never
+counted twice.
 
 The client never patches its own state after a write. It waits for the
 `change` event like every other browser, so there is one path for updates and
@@ -81,7 +105,7 @@ no way for a tab to disagree with the database.
 
 If the `LISTEN` connection drops and reconnects, notifications may have been
 missed, so the server closes every open stream. `EventSource` reconnects by
-itself and the new stream starts with a fresh snapshot.
+itself and the new stream starts with the current value or count.
 
 The schema is applied from `db/schema.sql` the first time the database is
 used, inside a transaction holding an advisory lock so that several instances

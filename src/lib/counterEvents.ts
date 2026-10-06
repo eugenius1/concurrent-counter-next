@@ -1,7 +1,12 @@
 import { db, type Counter } from "./db";
 
+export interface CounterChange extends Counter {
+  /** True for a new counter, false for a changed value. */
+  created: boolean;
+}
+
 export interface CounterSubscriber {
-  onChange: (counter: Counter) => void;
+  onChange: (change: CounterChange) => void;
   /** The database listener reconnected, so changes may have been missed. */
   onReset: () => void;
 }
@@ -22,8 +27,8 @@ async function listen() {
   await sql.listen(
     CHANNEL,
     (payload) => {
-      const counter = JSON.parse(payload) as Counter;
-      subscribers.forEach((subscriber) => subscriber.onChange(counter));
+      const change = JSON.parse(payload) as CounterChange;
+      subscribers.forEach((subscriber) => subscriber.onChange(change));
     },
     () => {
       // Called on the first listen and again after every reconnect
