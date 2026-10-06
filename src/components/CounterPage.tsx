@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
-import NextLink from "next/link";
+import { useState } from "react";
 import { Box, Button, Container, Snackbar, Typography } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ShareIcon from "@mui/icons-material/Share";
-import Counter from "./Counter";
+import LiveCounter from "./LiveCounter";
 import Copyright from "./Copyright";
-
-const subscribeToNothing = () => () => {};
 
 export default function CounterPage({
   id,
@@ -17,29 +14,7 @@ export default function CounterPage({
   id: string;
   initialValue: number;
 }) {
-  const [value, setValue] = useState(initialValue);
   const [notice, setNotice] = useState("");
-  // The share sheet exists mostly on phones; read on the client only, so the
-  // server-rendered page and the first client render agree
-  const canShare = useSyncExternalStore(
-    subscribeToNothing,
-    () => typeof navigator.share === "function",
-    () => false,
-  );
-
-  useEffect(() => {
-    // The stream sends the current value first, then every change.
-    // EventSource reconnects on its own and receives the current value again.
-    const events = new EventSource(`/api/counters/${id}/stream`);
-
-    events.addEventListener("change", (event) => {
-      setValue(JSON.parse(event.data).value);
-    });
-
-    return () => {
-      events.close();
-    };
-  }, [id]);
 
   const copyLink = async () => {
     try {
@@ -52,6 +27,8 @@ export default function CounterPage({
   };
 
   const shareLink = async () => {
+    // Not every browser has a share sheet; copying is the next best thing
+    if (typeof navigator.share !== "function") return copyLink();
     try {
       await navigator.share({
         title: document.title,
@@ -68,7 +45,7 @@ export default function CounterPage({
         Concurrent Counter
       </Typography>
 
-      <Counter id={id} value={value} />
+      <LiveCounter id={id} initialValue={initialValue} />
 
       <Typography align="center" sx={{ mt: 4, mb: 2, color: "text.secondary" }}>
         Anyone with the link to this page can see and change this counter.
@@ -83,22 +60,17 @@ export default function CounterPage({
       >
         <Button
           variant="contained"
+          onClick={shareLink}
+          startIcon={<ShareIcon />}
+        >
+          Share
+        </Button>
+        <Button
+          variant="outlined"
           onClick={copyLink}
           startIcon={<ContentCopyIcon />}
         >
           Copy link
-        </Button>
-        {canShare && (
-          <Button
-            variant="outlined"
-            onClick={shareLink}
-            startIcon={<ShareIcon />}
-          >
-            Share
-          </Button>
-        )}
-        <Button component={NextLink} href="/">
-          Home
         </Button>
       </Box>
 

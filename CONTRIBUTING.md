@@ -21,8 +21,11 @@ point at another database, set `DATABASE_URL` in `.env.local`, which git
 ignores. The app creates its schema on first use, so a fresh database needs no
 setup.
 
-In Claude Code, [.claude/launch.json](.claude/launch.json) defines the same two
-servers as `db` and `web`.
+In Claude Code, [.claude/launch.json](.claude/launch.json) defines `web`, which
+starts the database and then the dev server. The database is not an entry of
+its own because each entry opens a browser tab at its port, and a tab pointed
+at Postgres never finishes loading. It keeps running after the preview stops;
+`docker compose stop db` stops it.
 
 `npm run validate` is the gate: lint, typecheck, every test and a production
 build. Run it before every commit. CI runs the same steps.
@@ -46,10 +49,13 @@ Open pull requests against `dev`.
 | [src/lib/eventStream.ts](src/lib/eventStream.ts) | The Server-Sent Events response both streams are built on. |
 | `src/app/api/counters/` | Route handlers: create, increment, and the two event streams. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | Health check that queries the database. |
-| [src/app/page.tsx](src/app/page.tsx) | The homepage: creates a counter and shows how many exist. |
+| [src/app/page.tsx](src/app/page.tsx) | The homepage: creates a counter, shows how many exist, and shows the demo counter. |
 | [src/app/c/[id]/page.tsx](src/app/c/%5Bid%5D/page.tsx) | A counter's own page: loads it on the server, or returns 404. |
-| [src/components/CounterPage.tsx](src/components/CounterPage.tsx) | The counter page in the browser: opens the stream, shares the link. |
+| [src/components/CounterPage.tsx](src/components/CounterPage.tsx) | The counter page in the browser: the counter and the buttons that share its link. |
+| [src/components/LiveCounter.tsx](src/components/LiveCounter.tsx) | A counter kept current by its own event stream. |
 | [src/components/Counter.tsx](src/components/Counter.tsx) | One counter and its two buttons. |
+| [src/components/Header.tsx](src/components/Header.tsx) | The icon that links home and the theme switch, on every page. |
+| [src/lib/demoCounter.ts](src/lib/demoCounter.ts) | The id of the counter shown on the homepage. |
 | `src/__tests__/`, `*.test.ts` beside routes | Component tests (jsdom) and route tests (node). |
 
 ## How it works
@@ -74,6 +80,10 @@ There are no accounts, so a counter's link is what grants access to it: the
 id is an unguessable ULID and `/c/:id` is the only way in. Nothing may list
 ids for that reason. The homepage stream carries a number and no ids, and
 each counter stream filters to its own id.
+
+The one exception is the demo counter. `db/schema.sql` seeds a counter with a
+fixed id, and the homepage shows it to every visitor through the same
+per-counter stream, so there is something to press before creating one.
 
 Live updates come from Postgres itself. A trigger calls `pg_notify` on every
 insert and update, saying whether the row is new, the server holds one

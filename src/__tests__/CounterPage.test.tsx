@@ -66,9 +66,22 @@ describe("CounterPage Component", () => {
     consoleSpy.mockRestore();
   });
 
-  it("offers the share sheet only where the browser has one", () => {
+  it("puts Share before Copy link", () => {
     renderPage();
-    expect(screen.queryByText("Share")).not.toBeInTheDocument();
+
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    expect(labels.indexOf("Share")).toBeLessThan(labels.indexOf("Copy link"));
+  });
+
+  it("copies the link from Share where there is no share sheet", async () => {
+    renderPage();
+
+    fireEvent.click(screen.getByText("Share"));
+
+    expect(await screen.findByText("Link copied")).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalledWith(window.location.href);
   });
 
   it("shares the page's link through the share sheet", () => {
@@ -81,5 +94,6 @@ describe("CounterPage Component", () => {
     expect(share).toHaveBeenCalledWith(
       expect.objectContaining({ url: window.location.href }),
     );
+    expect(writeText).not.toHaveBeenCalled();
   });
 });

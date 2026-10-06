@@ -2,15 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "db",
-      "runtimeExecutable": "docker",
-      "runtimeArgs": ["compose", "up", "db"],
-      "port": 5433
-    },
-    {
       "name": "web",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "docker compose up -d --wait db && npm run dev"],
       "port": 3000
     }
   ]

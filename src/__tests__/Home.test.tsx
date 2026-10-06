@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Home from "../app/page";
 import { MockEventSource } from "./MockEventSource";
+import { DEMO_COUNTER_ID } from "../lib/demoCounter";
 
 const push = jest.fn();
 jest.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
@@ -12,7 +13,13 @@ describe("Home Component", () => {
 
   const renderHome = () => {
     const view = render(<Home />);
-    return { ...view, events: MockEventSource.instances[0] };
+    return {
+      ...view,
+      events: MockEventSource.for("/api/counters/stream"),
+      demoEvents: MockEventSource.for(
+        `/api/counters/${DEMO_COUNTER_ID}/stream`,
+      ),
+    };
   };
 
   beforeEach(() => {
@@ -32,7 +39,7 @@ describe("Home Component", () => {
   it("opens the count stream and closes it on unmount", () => {
     const { events, unmount } = renderHome();
 
-    expect(events.url).toBe("/api/counters/stream");
+    expect(events).toBeDefined();
 
     unmount();
     expect(events.close).toHaveBeenCalled();
@@ -51,12 +58,17 @@ describe("Home Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("lists no counters", () => {
-    const { events } = renderHome();
-
-    events.emit("count", 2);
-
+  it("shows only the demo counter, kept current", () => {
+    const { events, demoEvents } = renderHome();
+    events.emit("count", 3);
     expect(screen.queryByTestId(/^counter-0/)).not.toBeInTheDocument();
+
+    demoEvents.emit("change", { id: DEMO_COUNTER_ID, value: 12 });
+    expect(screen.getByText("12")).toBeInTheDocument();
+
+    demoEvents.emit("change", { id: DEMO_COUNTER_ID, value: 13 });
+    expect(screen.getByText("13")).toBeInTheDocument();
+    expect(screen.getAllByTestId(/^counter-0/)).toHaveLength(1);
   });
 
   it("creates a counter and goes to its page", async () => {

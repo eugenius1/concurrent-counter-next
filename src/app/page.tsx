@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Container, Button, Typography, Box } from "@mui/material";
 import Copyright from "../components/Copyright";
+import LiveCounter from "../components/LiveCounter";
+import { DEMO_COUNTER_ID } from "../lib/demoCounter";
 
 export default function Home() {
   const router = useRouter();
@@ -69,6 +71,11 @@ export default function Home() {
             : `${count.toLocaleString("en")} counters created so far`}
         </Typography>
       )}
+
+      <Typography align="center" sx={{ mt: 6, color: "text.secondary" }}>
+        Or try this one, shared with everyone who visits:
+      </Typography>
+      <LiveCounter id={DEMO_COUNTER_ID} />
 
       <Box sx={{ mt: 8, mb: 4 }}>
         <Copyright />

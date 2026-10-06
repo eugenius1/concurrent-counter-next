@@ -12,6 +12,11 @@ export class MockEventSource {
     global.EventSource = MockEventSource as unknown as typeof EventSource;
   }
 
+  /** The stream opened for a URL; a page may hold more than one. */
+  static for(url: string) {
+    return MockEventSource.instances.find((events) => events.url === url)!;
+  }
+
   listeners: Record<string, Listener[]> = {};
   close = jest.fn();
 

@@ -23,3 +23,9 @@ CREATE OR REPLACE TRIGGER counters_notify_change
   AFTER INSERT OR UPDATE ON counters
   FOR EACH ROW
   EXECUTE FUNCTION notify_counter_change();
+
+-- The one counter every visitor sees on the homepage (DEMO_COUNTER_ID)
+INSERT INTO counters(id)
+  VALUES ('00000000000000000000000000')
+ON CONFLICT (id)
+  DO NOTHING;
