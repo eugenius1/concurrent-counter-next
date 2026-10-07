@@ -33,11 +33,10 @@ build. Run it before every commit. CI runs the same steps.
 **Configuration.** `DATABASE_URL` is the only variable: a Postgres connection
 string, read at runtime. The build does not need it.
 
-**Deploying.** Coolify builds with Nixpacks and deploys on push: `dev` goes to
-<https://test.counter.eusebius.tech>, `main` to <https://counter.eusebius.tech>.
-Each app needs `DATABASE_URL` as a runtime variable pointing at a Postgres
-database on the same Docker network, and a health check on `/api/health`.
-Open pull requests against `dev`.
+**Deploying.** Coolify builds with Nixpacks and deploys every push to `main`
+to <https://counter.eusebius.tech>. The app needs `DATABASE_URL` as a runtime
+variable pointing at a Postgres database on the same Docker network, and a
+health check on `/api/health`. Open pull requests against `main`.
 
 ## Layout
 
@@ -207,7 +206,7 @@ dependency conflict.
 ## Conventions
 
 - `npm run validate` must pass before every commit.
-- Pull requests target `dev`.
+- Pull requests target `main`.
 - Commit subjects follow Conventional Commits (`feat:`, `fix:`, `ci:` …);
   commitlint checks them on every pull request. The body is prose explaining
   the reasoning and what went wrong, not a changelog line.

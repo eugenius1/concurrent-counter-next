@@ -2,9 +2,9 @@ name: NextJS
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
+  # Every PR, including ones stacked on another PR's branch.
   pull_request:
-    branches: [main, dev]
 
 permissions:
   contents: read
