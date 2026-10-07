@@ -56,7 +56,7 @@ export default function Home() {
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h5" component="h1" align="center" sx={{ mb: 4 }}>
         Create a counter, share its link, and everyone with the link sees it
-        change at the same moment.
+        change at the same time.
       </Typography>
 
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
