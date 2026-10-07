@@ -53,6 +53,7 @@ export default function LanguageSwitch() {
           <MenuItem
             key={code}
             lang={code}
+            role="menuitemradio"
             selected={code === locale}
             onClick={() => choose(code)}
           >

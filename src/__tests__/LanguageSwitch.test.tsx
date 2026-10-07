@@ -21,7 +21,7 @@ describe("LanguageSwitch Component", () => {
 
     await user.click(screen.getByRole("button", { name: "Language" }));
 
-    const items = screen.getAllByRole("menuitem");
+    const items = screen.getAllByRole("menuitemradio");
     expect(items.map((item) => item.textContent)).toEqual([
       "English",
       "中文",
@@ -51,7 +51,7 @@ describe("LanguageSwitch Component", () => {
     render(<LanguageSwitch />);
 
     await user.click(screen.getByRole("button", { name: "Language" }));
-    await user.click(screen.getByRole("menuitem", { name: "Kiswahili" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Kiswahili" }));
 
     expect(document.cookie).toContain("locale=sw");
   });
