@@ -18,6 +18,9 @@ const theme = extendTheme({
     },
   },
   cssVarPrefix: "mui",
+  // Without this the colours follow only the OS preference and the theme
+  // menu changes nothing. Matches InitColorSchemeScript in the layout.
+  colorSchemeSelector: "class",
   typography: {
     fontFamily: roboto.style.fontFamily,
   },
