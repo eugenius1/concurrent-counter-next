@@ -8,7 +8,7 @@ const roboto = Roboto({
   display: "swap",
 });
 
-const theme = extendTheme({
+const options: Parameters<typeof extendTheme>[0] = {
   colorSchemes: {
     light: {
       palette: {},
@@ -36,6 +36,11 @@ const theme = extendTheme({
   //     },
   //   },
   // },
-});
+};
+
+const theme = extendTheme(options);
+
+/** The same theme for languages written right to left. */
+export const rtlTheme = extendTheme({ ...options, direction: "rtl" });
 
 export default theme;

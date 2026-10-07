@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Box, Button, Container, Snackbar, Typography } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ShareIcon from "@mui/icons-material/Share";
+import { useI18n } from "@/i18n/I18nProvider";
 import LiveCounter from "./LiveCounter";
 import Copyright from "./Copyright";
 
@@ -14,15 +15,16 @@ export default function CounterPage({
   id: string;
   initialValue: string;
 }) {
+  const { m } = useI18n();
   const [notice, setNotice] = useState("");
 
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      setNotice("Link copied");
+      setNotice(m.linkCopied);
     } catch (error) {
       console.error("Error copying link:", error);
-      setNotice("Couldn't copy the link. Copy it from the address bar instead.");
+      setNotice(m.copyFailed);
     }
   };
 
@@ -44,7 +46,7 @@ export default function CounterPage({
       <LiveCounter id={id} initialValue={initialValue} />
 
       <Typography align="center" sx={{ mt: 4, mb: 2, color: "text.secondary" }}>
-        Anyone with the link to this page can see and change this counter.
+        {m.anyoneWithLink}
       </Typography>
       <Box
         sx={{
@@ -59,14 +61,14 @@ export default function CounterPage({
           onClick={shareLink}
           startIcon={<ShareIcon />}
         >
-          Share
+          {m.share}
         </Button>
         <Button
           variant="outlined"
           onClick={copyLink}
           startIcon={<ContentCopyIcon />}
         >
-          Copy link
+          {m.copyLink}
         </Button>
       </Box>
 

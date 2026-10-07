@@ -1,14 +1,17 @@
 import * as React from "react";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
-import CssBaseline from "@mui/material/CssBaseline";
-import theme from "@/theme";
-import Header from "@/components/Header";
-import { ThemeProvider } from "@mui/material/styles";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
+import Header from "@/components/Header";
+import Providers from "@/components/Providers";
+import { localeDir } from "@/i18n/locales";
+import { loadMessages } from "@/i18n/messages";
+import { getLocale } from "@/i18n/server";
 
-export default function RootLayout(props: { children: React.ReactNode }) {
+export default async function RootLayout(props: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await loadMessages(locale);
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} dir={localeDir(locale)} suppressHydrationWarning>
       <head>
         <title>Concurrent Counter | Eusebius.Tech</title>
         <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -17,14 +20,10 @@ export default function RootLayout(props: { children: React.ReactNode }) {
       </head>
       <body>
         <InitColorSchemeScript attribute="class" />
-        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          <ThemeProvider theme={theme}>
-            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-            <CssBaseline />
-            <Header />
-            {props.children}
-          </ThemeProvider>
-        </AppRouterCacheProvider>
+        <Providers locale={locale} messages={messages}>
+          <Header />
+          {props.children}
+        </Providers>
       </body>
     </html>
   );

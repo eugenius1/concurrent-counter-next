@@ -2,6 +2,8 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Home from "../app/page";
 import { MockEventSource } from "./MockEventSource";
 import { DEMO_COUNTER_ID } from "../lib/demoCounter";
+import { I18nProvider } from "../i18n/I18nProvider";
+import sw from "../i18n/messages/sw";
 
 const push = jest.fn();
 jest.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
@@ -112,5 +114,19 @@ describe("Home Component", () => {
       "You've created a lot of counters. Try again in a minute.",
     );
     consoleSpy.mockRestore();
+  });
+
+  it("is in the visitor's language", () => {
+    render(
+      <I18nProvider locale="sw" messages={sw}>
+        <Home />
+      </I18nProvider>,
+    );
+    MockEventSource.for("/api/counters/stream").emit("count", 1234);
+
+    expect(screen.getByText("Unda Kihesabu Kipya")).toBeInTheDocument();
+    expect(
+      screen.getByText("Vihesabu 1,234 vimeundwa hadi sasa"),
+    ).toBeInTheDocument();
   });
 });

@@ -8,9 +8,12 @@ import Copyright from "../components/Copyright";
 import ErrorToast from "../components/ErrorToast";
 import LiveCounter from "../components/LiveCounter";
 import { DEMO_COUNTER_ID } from "../lib/demoCounter";
+import { plural } from "@/i18n/format";
+import { useI18n } from "@/i18n/I18nProvider";
 
 export default function Home() {
   const router = useRouter();
+  const { locale, m } = useI18n();
   const [count, setCount] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
@@ -44,19 +47,14 @@ export default function Home() {
     } catch (error) {
       console.error("Error creating counter:", error);
       setCreating(false);
-      setError(
-        rateLimited
-          ? "You've created a lot of counters. Try again in a minute."
-          : "Couldn't create a counter. Try again later.",
-      );
+      setError(rateLimited ? m.createRateLimited : m.createFailed);
     }
   };
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h5" component="h1" align="center" sx={{ mb: 4 }}>
-        Create a counter, share its link, and everyone with the link sees it
-        change at the same time.
+        {m.tagline}
       </Typography>
 
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
@@ -69,20 +67,18 @@ export default function Home() {
           startIcon={<AddCircleOutlinedIcon />}
           size="large"
         >
-          Create New Counter
+          {m.createCounter}
         </Button>
       </Box>
 
       {count !== null && (
         <Typography align="center" data-testid="counter-count">
-          {count === 1
-            ? "1 counter created so far"
-            : `${count.toLocaleString("en")} counters created so far`}
+          {plural(locale, m.countersCreated, count)}
         </Typography>
       )}
 
       <Typography align="center" sx={{ mt: 6, color: "text.secondary" }}>
-        Or try this one, shared with everyone who visits:
+        {m.tryDemo}
       </Typography>
       <LiveCounter id={DEMO_COUNTER_ID} />
 

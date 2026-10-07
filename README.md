@@ -34,6 +34,22 @@ link and both always see the running total.
 - If your connection drops, the page reconnects on its own and catches up with
   the current values.
 
+## Languages and appearance
+
+The app is translated into the 19 most spoken languages in the world, from
+English down to Swahili: English, Mandarin Chinese, Hindi, Spanish, Arabic,
+French, Bengali, Portuguese, Indonesian, Urdu, Russian, German, Japanese,
+Nigerian Pidgin, Egyptian Arabic, Marathi, Vietnamese, Telugu and Swahili.
+
+It opens in your browser's language when that is one of them, and in English
+otherwise. The translate button in the corner changes it, and the choice is
+remembered on that device. Arabic and Urdu are laid out right to left. A
+counter's link is the same in every language, so each person who opens it
+sees it in their own.
+
+The button next to it switches between light and dark, and follows your
+system setting by default.
+
 ## Good to know
 
 - There are no accounts. A counter you create isn't listed anywhere, but
@@ -43,7 +59,8 @@ link and both always see the running total.
   bookmark.
 - Counters can't be renamed or deleted. Each is labelled with the last six
   characters of its id.
-- The light/dark switch in the corner follows your system setting by default.
+- The translations were not written by native speakers. Corrections are
+  welcome.
 
 ## Status
 

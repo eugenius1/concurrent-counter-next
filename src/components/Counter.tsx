@@ -2,9 +2,12 @@ import { useState } from "react";
 import { Box, Button, Typography, Paper } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import { fill } from "@/i18n/format";
+import { useI18n } from "@/i18n/I18nProvider";
 import ErrorToast from "./ErrorToast";
 
 export default function Counter({ id, value }: { id: string; value: string }) {
+  const { m } = useI18n();
   const [error, setError] = useState("");
 
   // The new value arrives through the counter page's event stream
@@ -22,11 +25,7 @@ export default function Counter({ id, value }: { id: string; value: string }) {
       }
     } catch (error) {
       console.error("Error updating counter:", error);
-      setError(
-        rateLimited
-          ? "That's too many presses. Try again in a moment."
-          : "Couldn't update the counter. Try again later.",
-      );
+      setError(rateLimited ? m.updateRateLimited : m.updateFailed);
     }
   };
 
@@ -45,7 +44,7 @@ export default function Counter({ id, value }: { id: string; value: string }) {
         }}
       >
         <Typography variant="h4" component="h2">
-          Counter #{id.slice(-6)}
+          {fill(m.counterTitle, { id: id.slice(-6) })}
         </Typography>
         <Typography variant="h2" component="div">
           {value}
@@ -62,7 +61,7 @@ export default function Counter({ id, value }: { id: string; value: string }) {
             onClick={() => updateCounter(-1)}
             startIcon={<RemoveIcon />}
           >
-            Decrease
+            {m.decrease}
           </Button>
           <Button
             variant="contained"
@@ -75,7 +74,7 @@ export default function Counter({ id, value }: { id: string; value: string }) {
             onClick={() => updateCounter(1)}
             endIcon={<AddIcon />}
           >
-            Increase
+            {m.increase}
           </Button>
         </Box>
       </Box>
