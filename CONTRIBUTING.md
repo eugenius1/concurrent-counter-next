@@ -57,6 +57,7 @@ Open pull requests against `dev`.
 | [src/components/CounterPage.tsx](src/components/CounterPage.tsx) | The counter page in the browser: the counter and the buttons that share its link. |
 | [src/components/LiveCounter.tsx](src/components/LiveCounter.tsx) | A counter kept current by its own event stream. |
 | [src/components/Counter.tsx](src/components/Counter.tsx) | One counter and its two buttons. |
+| [src/components/ErrorToast.tsx](src/components/ErrorToast.tsx) | The message shown when a press or a create fails. |
 | [src/components/Header.tsx](src/components/Header.tsx) | The icon and app name that link home, and the theme switch, on every page. |
 | [src/lib/demoCounter.ts](src/lib/demoCounter.ts) | The id of the counter shown on the homepage. |
 | `src/__tests__/`, `*.test.ts` beside routes | Component tests (jsdom) and route tests (node). |
@@ -132,6 +133,9 @@ or the /64 of an IPv6 one. `src/lib/rateLimit.ts` holds the numbers.
 | Creating a counter | 5 at once, then 5 a minute | `429` with `Retry-After` |
 | Pressing a counter | 20 at once, then 10 a second | `429` with `Retry-After` |
 | Open event streams | 40 | `429` |
+
+A refused write shows a toast asking the user to try again later, as any
+failed write does.
 
 Both writes also answer `403` to a request that a page on another origin made
 a browser send, judged by `Sec-Fetch-Site`, or by `Origin` against `Host` in

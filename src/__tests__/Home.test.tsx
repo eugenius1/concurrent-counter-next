@@ -94,7 +94,23 @@ describe("Home Component", () => {
     });
     expect(push).not.toHaveBeenCalled();
     expect(screen.getByText("Create New Counter")).toBeEnabled();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Couldn't create a counter. Try again later.",
+    );
 
+    consoleSpy.mockRestore();
+  });
+
+  it("says so when too many counters have been created", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    mockFetch.mockResolvedValue({ ok: false, status: 429 });
+
+    renderHome();
+    fireEvent.click(screen.getByText("Create New Counter"));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "You've created a lot of counters. Try again in a minute.",
+    );
     consoleSpy.mockRestore();
   });
 });
