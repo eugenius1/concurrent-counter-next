@@ -3,7 +3,7 @@ import Counter from "../components/Counter";
 
 const mockCounter = {
   id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3",
-  value: 42,
+  value: "42",
 };
 
 describe("Counter Component", () => {
@@ -40,6 +40,20 @@ describe("Counter Component", () => {
         }),
       );
     });
+  });
+
+  it.each([
+    [429, "That's too many presses. Try again in a moment."],
+    [500, "Couldn't update the counter. Try again later."],
+  ])("tells the user when the update fails with %d", async (status, message) => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    mockFetch.mockResolvedValue({ ok: false, status });
+
+    render(<Counter {...mockCounter} />);
+    fireEvent.click(screen.getByText("Increase"));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    consoleSpy.mockRestore();
   });
 
   it("logs an error when the update fails", async () => {

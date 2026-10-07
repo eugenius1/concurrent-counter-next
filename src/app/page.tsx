@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Container, Button, Typography, Box } from "@mui/material";
 import AddCircleOutlinedIcon from "@mui/icons-material/AddCircleOutlined";
 import Copyright from "../components/Copyright";
+import ErrorToast from "../components/ErrorToast";
 import LiveCounter from "../components/LiveCounter";
 import { DEMO_COUNTER_ID } from "../lib/demoCounter";
 
@@ -12,6 +13,7 @@ export default function Home() {
   const router = useRouter();
   const [count, setCount] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     // The stream sends the number of counters, and again whenever one is
@@ -29,8 +31,10 @@ export default function Home() {
 
   const createCounter = async () => {
     setCreating(true);
+    let rateLimited = false;
     try {
       const response = await fetch("/api/counters", { method: "POST" });
+      rateLimited = response.status === 429;
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`);
       }
@@ -40,6 +44,11 @@ export default function Home() {
     } catch (error) {
       console.error("Error creating counter:", error);
       setCreating(false);
+      setError(
+        rateLimited
+          ? "You've created a lot of counters. Try again in a minute."
+          : "Couldn't create a counter. Try again later.",
+      );
     }
   };
 
@@ -76,6 +85,8 @@ export default function Home() {
         Or try this one, shared with everyone who visits:
       </Typography>
       <LiveCounter id={DEMO_COUNTER_ID} />
+
+      <ErrorToast message={error} onClose={() => setError("")} />
 
       <Box sx={{ mt: 8, mb: 4 }}>
         <Copyright />

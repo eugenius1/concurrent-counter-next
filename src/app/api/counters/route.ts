@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { ulid } from "ulid";
 import { db, type Counter } from "@/lib/db";
+import { CREATE_LIMIT, rateLimit } from "@/lib/rateLimit";
+import { rejectCrossSite } from "@/lib/sameOrigin";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const rejected = rejectCrossSite(request) ?? rateLimit(request, CREATE_LIMIT);
+  if (rejected) return rejected;
+
   try {
     const sql = await db();
     const [counter] = await sql<Counter[]>`

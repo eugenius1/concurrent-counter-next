@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { db, isCounterId, type Counter } from "@/lib/db";
+import { INCREMENT_LIMIT, rateLimit } from "@/lib/rateLimit";
+import { rejectCrossSite } from "@/lib/sameOrigin";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const rejected =
+    rejectCrossSite(request) ?? rateLimit(request, INCREMENT_LIMIT);
+  if (rejected) return rejected;
+
   const { id } = await params;
   const body = await request.json().catch(() => null);
   const by = body?.by;

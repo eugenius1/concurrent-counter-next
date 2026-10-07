@@ -1,3 +1,5 @@
+import { holdStream } from "./rateLimit";
+
 const HEARTBEAT_MS = 25_000;
 
 export interface EventStream {
@@ -11,11 +13,17 @@ export interface EventStream {
  * A Server-Sent Events response. `open` subscribes and sends the first event;
  * the stream ends when the client disconnects, `close` is called or `open`
  * throws. Clients reconnect on their own.
+ *
+ * A stream costs a socket and a subscriber for as long as it is open, so each
+ * client may hold only so many; past that the response is a 429.
  */
 export function eventStream(
   request: Request,
   open: (stream: EventStream) => Promise<void>,
 ): Response {
+  const release = holdStream(request);
+  if (release instanceof Response) return release;
+
   const encoder = new TextEncoder();
   let close = () => {};
 
@@ -33,6 +41,7 @@ export function eventStream(
         if (closed) return;
         closed = true;
         clearInterval(heartbeat);
+        release();
         callbacks.forEach((callback) => callback());
         try {
           controller.close();

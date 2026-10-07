@@ -1,20 +1,12 @@
 /** @jest-environment node */
 import { GET } from "./route";
-import { db } from "@/lib/db";
-import {
-  subscribeToCounters,
-  type CounterSubscriber,
-} from "@/lib/counterEvents";
+import { subscribeToCount, type CountListener } from "@/lib/counterCount";
 
-jest.mock("@/lib/db", () => ({ db: jest.fn() }));
-jest.mock("@/lib/counterEvents", () => ({ subscribeToCounters: jest.fn() }));
-
-const id = "01HQ8XVNZ8YRTKP6QXDJ8W12N3";
+jest.mock("@/lib/counterCount", () => ({ subscribeToCount: jest.fn() }));
 
 describe("GET /api/counters/stream", () => {
-  let subscriber: CounterSubscriber;
+  let listener: CountListener;
   let unsubscribe: jest.Mock;
-  let sql: jest.Mock;
 
   const open = async () => {
     const abort = new AbortController();
@@ -33,36 +25,23 @@ describe("GET /api/counters/stream", () => {
 
   beforeEach(() => {
     unsubscribe = jest.fn();
-    (subscribeToCounters as jest.Mock).mockImplementation(async (s) => {
-      subscriber = s;
+    (subscribeToCount as jest.Mock).mockImplementation(async (l) => {
+      listener = l;
+      l.onCount(2);
       return unsubscribe;
     });
-    sql = jest.fn().mockResolvedValue([{ count: 2 }]);
-    (db as jest.Mock).mockResolvedValue(sql);
   });
 
-  it("sends the count, and again when a counter is created", async () => {
+  it("sends the count, and again when it changes", async () => {
     const { response, read, abort } = await open();
 
     expect(response.headers.get("Content-Type")).toBe("text/event-stream");
     expect(await read()).toBe("event: count\ndata: 2\n\n");
 
-    sql.mockResolvedValue([{ count: 3 }]);
-    subscriber.onChange({ id, value: 0, created: true });
+    listener.onCount(3);
     expect(await read()).toBe("event: count\ndata: 3\n\n");
 
     abort.abort();
-  });
-
-  it("sends nothing when a counter only changes value", async () => {
-    const { read, abort } = await open();
-    await read();
-
-    subscriber.onChange({ id, value: 5, created: false });
-    abort.abort();
-
-    expect(await read()).toBeNull();
-    expect(sql).toHaveBeenCalledTimes(1);
   });
 
   it("unsubscribes when the client disconnects", async () => {
@@ -75,24 +54,25 @@ describe("GET /api/counters/stream", () => {
     expect(unsubscribe).toHaveBeenCalled();
   });
 
-  it("ends the stream when the database listener reconnects", async () => {
+  it("ends the stream when the count can't be read", async () => {
     const { read } = await open();
     await read();
 
-    subscriber.onReset();
+    listener.onError();
 
     expect(await read()).toBeNull();
     expect(unsubscribe).toHaveBeenCalled();
   });
 
-  it("ends the stream when the count can't be read", async () => {
+  it("ends the stream when it can't subscribe", async () => {
     const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-    sql.mockRejectedValue(new Error("connection refused"));
+    (subscribeToCount as jest.Mock).mockRejectedValue(
+      new Error("connection refused"),
+    );
 
     const { read } = await open();
 
     expect(await read()).toBeNull();
-    expect(unsubscribe).toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
 });

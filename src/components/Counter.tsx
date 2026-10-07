@@ -1,21 +1,32 @@
+import { useState } from "react";
 import { Box, Button, Typography, Paper } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import ErrorToast from "./ErrorToast";
 
-export default function Counter({ id, value }: { id: string; value: number }) {
+export default function Counter({ id, value }: { id: string; value: string }) {
+  const [error, setError] = useState("");
+
   // The new value arrives through the counter page's event stream
   const updateCounter = async (incrementBy: number) => {
+    let rateLimited = false;
     try {
       const response = await fetch(`/api/counters/${id}/increment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ by: incrementBy }),
       });
+      rateLimited = response.status === 429;
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`);
       }
     } catch (error) {
       console.error("Error updating counter:", error);
+      setError(
+        rateLimited
+          ? "That's too many presses. Try again in a moment."
+          : "Couldn't update the counter. Try again later.",
+      );
     }
   };
 
@@ -68,6 +79,7 @@ export default function Counter({ id, value }: { id: string; value: number }) {
           </Button>
         </Box>
       </Box>
+      <ErrorToast message={error} onClose={() => setError("")} />
     </Paper>
   );
 }

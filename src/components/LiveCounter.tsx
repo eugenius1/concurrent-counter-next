@@ -12,7 +12,7 @@ export default function LiveCounter({
   initialValue,
 }: {
   id: string;
-  initialValue?: number;
+  initialValue?: string;
 }) {
   const [value, setValue] = useState(initialValue);
 
