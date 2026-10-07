@@ -33,10 +33,13 @@ describe("ModeSwitch Component", () => {
       await screen.findByRole("button", { name: "Theme: System" }),
     );
     expect(
-      screen.getAllByRole("menuitem").map((item) => item.textContent),
+      screen.getAllByRole("menuitemradio").map((item) => item.textContent),
     ).toEqual(["System", "Light", "Dark"]);
+    expect(
+      screen.getByRole("menuitemradio", { checked: true }),
+    ).toHaveTextContent("System");
 
-    await user.click(screen.getByRole("menuitem", { name: "Dark" }));
+    await user.click(screen.getByRole("menuitemradio", { name: "Dark" }));
 
     expect(
       await screen.findByRole("button", { name: "Theme: Dark" }),

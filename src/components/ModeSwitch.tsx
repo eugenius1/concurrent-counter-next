@@ -50,6 +50,8 @@ export default function ModeSwitch() {
         {MODES.map(({ value, label, Icon }) => (
           <MenuItem
             key={value}
+            // A radio, so a screen reader says which theme is the current one
+            role="menuitemradio"
             selected={value === mode}
             onClick={() => {
               setMode(value);
