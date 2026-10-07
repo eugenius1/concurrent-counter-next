@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main, dev]
 
+permissions:
+  contents: read
+  # Codecov authenticates the upload with a GitHub OIDC token, not a secret.
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "23"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
@@ -28,9 +33,17 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      # CI=true turns on coverage -- see jest.config.mjs.
+      - name: Run tests
+        run: npm test
+
       - name: Build
         run: npm run build
 
-      # Uncomment after adding tests
-      # - name: Run tests
-      #   run: npm test
+      # Reporting, not a gate: a Codecov outage must not block a merge.
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          use_oidc: true
+          files: coverage/lcov.info
+          fail_ci_if_error: false

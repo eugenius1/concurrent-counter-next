@@ -1,6 +1,5 @@
-import * as React from 'react';
-import Typography from '@mui/material/Typography';
-import MuiLink from '@mui/material/Link';
+import * as React from "react";
+import Typography from "@mui/material/Typography";
 
 export default function Copyright() {
   return (
@@ -8,14 +7,12 @@ export default function Copyright() {
       variant="body2"
       align="center"
       sx={{
-        color: 'text.secondary',
+        color: "text.secondary",
       }}
     >
-      {'Copyright © '}
-      <MuiLink color="inherit" href="https://mui.com/">
-        Your Website
-      </MuiLink>{' '}
-      {new Date().getFullYear()}.
+      {"Copyright © "}
+      {new Date().getFullYear()}
+      {" Eusebius.Tech"}
     </Typography>
   );
 }

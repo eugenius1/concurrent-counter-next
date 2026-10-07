@@ -1,31 +1,94 @@
-import * as React from 'react';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
-import NextLink from 'next/link';
-import ProTip from '@/components/ProTip';
-import Copyright from '@/components/Copyright';
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Container, Button, Typography, Box } from "@mui/material";
+import AddCircleOutlinedIcon from "@mui/icons-material/AddCircleOutlined";
+import Copyright from "../components/Copyright";
+import ErrorToast from "../components/ErrorToast";
+import LiveCounter from "../components/LiveCounter";
+import { DEMO_COUNTER_ID } from "../lib/demoCounter";
 
 export default function Home() {
+  const router = useRouter();
+  const [count, setCount] = useState<number | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // The stream sends the number of counters, and again whenever one is
+    // created. EventSource reconnects on its own and receives it afresh.
+    const events = new EventSource("/api/counters/stream");
+
+    events.addEventListener("count", (event) => {
+      setCount(JSON.parse(event.data));
+    });
+
+    return () => {
+      events.close();
+    };
+  }, []);
+
+  const createCounter = async () => {
+    setCreating(true);
+    let rateLimited = false;
+    try {
+      const response = await fetch("/api/counters", { method: "POST" });
+      rateLimited = response.status === 429;
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      const { id } = await response.json();
+      // The button stays disabled until the counter's page replaces this one
+      router.push(`/c/${id}`);
+    } catch (error) {
+      console.error("Error creating counter:", error);
+      setCreating(false);
+      setError(
+        rateLimited
+          ? "You've created a lot of counters. Try again in a minute."
+          : "Couldn't create a counter. Try again later.",
+      );
+    }
+  };
+
   return (
-    <Container maxWidth="lg">
-      <Box
-        sx={{
-          my: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Typography variant="h4" component="h1" sx={{ mb: 2 }}>
-          Material UI - Next.js App Router example in TypeScript
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Typography variant="h5" component="h1" align="center" sx={{ mb: 4 }}>
+        Create a counter, share its link, and everyone with the link sees it
+        change at the same moment.
+      </Typography>
+
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={createCounter}
+          loading={creating}
+          loadingPosition="start"
+          startIcon={<AddCircleOutlinedIcon />}
+          size="large"
+        >
+          Create New Counter
+        </Button>
+      </Box>
+
+      {count !== null && (
+        <Typography align="center" data-testid="counter-count">
+          {count === 1
+            ? "1 counter created so far"
+            : `${count.toLocaleString("en")} counters created so far`}
         </Typography>
-        <Link href="/about" color="secondary" component={NextLink}>
-          Go to the about page
-        </Link>
-        <ProTip />
+      )}
+
+      <Typography align="center" sx={{ mt: 6, color: "text.secondary" }}>
+        Or try this one, shared with everyone who visits:
+      </Typography>
+      <LiveCounter id={DEMO_COUNTER_ID} />
+
+      <ErrorToast message={error} onClose={() => setError("")} />
+
+      <Box sx={{ mt: 8, mb: 4 }}>
         <Copyright />
       </Box>
     </Container>
