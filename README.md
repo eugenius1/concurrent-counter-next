@@ -1,6 +1,7 @@
 # Concurrent Counter
 
 [![CI](https://github.com/eugenius1/concurrent-counter-next/actions/workflows/nextjs.yml/badge.svg)](https://github.com/eugenius1/concurrent-counter-next/actions/workflows/nextjs.yml)
+[![codecov](https://codecov.io/gh/eugenius1/concurrent-counter-next/graph/badge.svg)](https://codecov.io/gh/eugenius1/concurrent-counter-next)
 
 Shared counters that everyone sees change at the same moment. Create one, send
 its link to someone, press a button, and the number moves for both of you.

@@ -20,6 +20,10 @@ const config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  // Only in CI, where the test step's own run produces the report Codecov gets
+  collectCoverage: !!process.env.CI,
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.test.{ts,tsx}', '!src/**/*.d.ts'],
+  coverageReporters: ['lcov', 'text-summary'],
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
