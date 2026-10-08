@@ -75,6 +75,7 @@ describe("menuOrder", () => {
       "Deutsch",
       "Español",
       "Français",
+      "Hausa",
       "Kiswahili",
       "Naijá",
       "Português",

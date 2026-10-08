@@ -156,8 +156,8 @@ tries again.
 
 ## Localisation
 
-The languages are the most spoken in the world by total speakers (Ethnologue
-2026), in that order, down to Swahili. [src/i18n/locales.ts](src/i18n/locales.ts)
+The languages are the twenty most spoken in the world by total speakers
+(Ethnologue 2026), in that order. [src/i18n/locales.ts](src/i18n/locales.ts)
 lists them. The language menu has its own order: English first, as the way
 out for someone in a language they can't read, then the languages the
 visitor's browser asks for, then the rest by their own names under one fixed

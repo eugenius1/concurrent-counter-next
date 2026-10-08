@@ -36,10 +36,10 @@ link and both always see the running total.
 
 ## Languages and appearance
 
-The app is translated into the 19 most spoken languages in the world, from
-English down to Swahili: English, Mandarin Chinese, Hindi, Spanish, Arabic,
-French, Bengali, Portuguese, Indonesian, Urdu, Russian, German, Japanese,
-Nigerian Pidgin, Egyptian Arabic, Marathi, Vietnamese, Telugu and Swahili.
+The app is translated into the 20 most spoken languages in the world: English,
+Mandarin Chinese, Hindi, Spanish, Arabic, French, Bengali, Portuguese,
+Indonesian, Urdu, Russian, German, Japanese, Nigerian Pidgin, Egyptian Arabic,
+Marathi, Vietnamese, Telugu, Swahili and Hausa.
 
 It opens in your browser's language when that is one of them, and in English
 otherwise. The translate button in the corner changes it, and the choice is

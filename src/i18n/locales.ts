@@ -1,6 +1,6 @@
 /**
  * The languages the app is translated into: the most spoken in the world by
- * total speakers (Ethnologue 2026), in that order, down to Swahili. The menu
+ * total speakers (Ethnologue 2026), in that order: the top twenty. The menu
  * has its own order; see `menuOrder`.
  *
  * `intl` is the tag handed to `Intl` for plural rules and number formatting,
@@ -27,6 +27,7 @@ export const LOCALES = [
   { code: "vi", name: "Tiếng Việt" },
   { code: "te", name: "తెలుగు" },
   { code: "sw", name: "Kiswahili" },
+  { code: "ha", name: "Hausa" },
 ] as const satisfies readonly {
   code: string;
   name: string;

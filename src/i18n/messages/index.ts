@@ -22,6 +22,7 @@ const loaders: Record<Locale, () => Promise<{ default: Messages }>> = {
   vi: () => import("./vi"),
   te: () => import("./te"),
   sw: () => import("./sw"),
+  ha: () => import("./ha"),
 };
 
 export async function loadMessages(locale: Locale): Promise<Messages> {

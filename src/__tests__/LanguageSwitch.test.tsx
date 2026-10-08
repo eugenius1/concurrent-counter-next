@@ -32,6 +32,7 @@ describe("LanguageSwitch Component", () => {
       "Deutsch",
       "Español",
       "Français",
+      "Hausa",
       "Naijá",
       "Português",
       "Tiếng Việt",
