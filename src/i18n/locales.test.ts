@@ -14,6 +14,8 @@ describe("matchLocale", () => {
     ["pt-BR", "pt"],
     ["zh-Hans-CN", "zh"],
     ["ar-EG", "arz"],
+    ["ar-EG-u-nu-latn", "arz"],
+    ["ar-Arab-EG", "arz"],
     ["ar-SA", "ar"],
     ["PCM", "pcm"],
   ])("serves %s in %s", (header, locale) => {

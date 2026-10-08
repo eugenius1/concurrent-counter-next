@@ -43,9 +43,9 @@ Marathi, Vietnamese, Telugu, Swahili and Hausa.
 
 It opens in your browser's language when that is one of them, and in English
 otherwise. The translate button in the corner changes it, and the choice is
-remembered on that device. Arabic and Urdu are laid out right to left. A
-counter's link is the same in every language, so each person who opens it
-sees it in their own.
+remembered on that device. Arabic, Egyptian Arabic and Urdu are laid out right
+to left. A counter's link is the same in every language, so each person who
+opens it sees it in their own.
 
 The button next to it switches between light and dark, and follows your
 system setting by default.

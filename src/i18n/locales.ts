@@ -59,8 +59,9 @@ export function intlTag(locale: Locale): string {
 /** The translation for one language tag a browser sent, if there is one. */
 export function forTag(tag: string): Locale | undefined {
   const lower = tag.toLowerCase();
-  // Egypt's Arabic has its own translation; every other Arabic gets Standard
-  if (lower === "ar-eg") return "arz";
+  // Egypt's Arabic has its own translation; every other Arabic gets Standard.
+  // A script may come before the region and extensions after it.
+  if (/^ar(-[a-z]{4})?-eg(-|$)/.test(lower)) return "arz";
   if (isLocale(lower)) return lower;
   const language = lower.split("-")[0];
   return isLocale(language) ? language : undefined;
