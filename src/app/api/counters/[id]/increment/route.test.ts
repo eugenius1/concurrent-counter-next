@@ -32,6 +32,10 @@ describe("POST /api/counters/[id]/increment", () => {
     (db as jest.Mock).mockResolvedValue(sql);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it.each([1, -1])("applies an increment of %d", async (by) => {
     const response = await increment(id, { by });
 
@@ -78,6 +82,9 @@ describe("POST /api/counters/[id]/increment", () => {
 
   it("answers 429 once a client has used its burst", async () => {
     const client = { "X-Forwarded-For": "203.0.113.9" };
+    // The bucket refills a token every 100 ms, which a loaded machine can
+    // spend between requests, so the clock the limiter reads stands still
+    jest.spyOn(Date, "now").mockReturnValue(Date.now());
 
     for (let i = 0; i < INCREMENT_LIMIT.burst; i++) {
       expect((await increment(id, { by: 1 }, client)).status).toBe(200);
