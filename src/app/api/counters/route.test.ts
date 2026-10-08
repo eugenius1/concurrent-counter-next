@@ -16,6 +16,10 @@ describe("POST /api/counters", () => {
     (db as jest.Mock).mockReset();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("creates a counter with a generated id", async () => {
     const counter = { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: "0" };
     const sql = jest.fn().mockResolvedValue([counter]);
@@ -49,6 +53,9 @@ describe("POST /api/counters", () => {
     const sql = jest.fn().mockResolvedValue([{ id: "x", value: "0" }]);
     (db as jest.Mock).mockResolvedValue(sql);
     const client = { "X-Forwarded-For": "203.0.113.9" };
+    // The bucket refills as time passes, so the clock the limiter reads
+    // stands still
+    jest.spyOn(Date, "now").mockReturnValue(Date.now());
 
     for (let i = 0; i < CREATE_LIMIT.burst; i++) {
       expect((await create(client)).status).toBe(201);
