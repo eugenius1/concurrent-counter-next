@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import LanguageSwitch from "./LanguageSwitch";
 import ModeSwitch from "./ModeSwitch";
 
 export default function Header() {
@@ -26,7 +27,10 @@ export default function Header() {
           </Typography>
         </Box>
       </Link>
-      <ModeSwitch />
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        <LanguageSwitch />
+        <ModeSwitch />
+      </Box>
     </Box>
   );
 }

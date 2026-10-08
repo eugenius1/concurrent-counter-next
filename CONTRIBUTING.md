@@ -57,7 +57,11 @@ health check on `/api/health`. Open pull requests against `main`.
 | [src/components/LiveCounter.tsx](src/components/LiveCounter.tsx) | A counter kept current by its own event stream. |
 | [src/components/Counter.tsx](src/components/Counter.tsx) | One counter and its two buttons. |
 | [src/components/ErrorToast.tsx](src/components/ErrorToast.tsx) | The message shown when a press or a create fails. |
-| [src/components/Header.tsx](src/components/Header.tsx) | The icon and app name that link home, and the theme switch, on every page. |
+| [src/components/Header.tsx](src/components/Header.tsx) | The icon and app name that link home, and the language and theme switches, on every page. |
+| [src/components/Providers.tsx](src/components/Providers.tsx) | Styles, theme and language around every page, mirrored for right-to-left languages. |
+| [src/i18n/locales.ts](src/i18n/locales.ts) | The list of languages, and the choice of one from `Accept-Language`. |
+| `src/i18n/messages/` | One file of messages per language. `en.ts` defines the set. |
+| [src/i18n/format.ts](src/i18n/format.ts) | Placeholders and plural forms. |
 | [src/lib/demoCounter.ts](src/lib/demoCounter.ts) | The id of the counter shown on the homepage. |
 | `src/__tests__/`, `*.test.ts` beside routes | Component tests (jsdom) and route tests (node). |
 
@@ -149,6 +153,44 @@ The schema is applied from `db/schema.sql` the first time the database is
 used, inside a transaction holding an advisory lock so that several instances
 starting together don't race. A failed attempt is not cached; the next request
 tries again.
+
+## Localisation
+
+The languages are the twenty most spoken in the world by total speakers
+(Ethnologue 2026), in that order. [src/i18n/locales.ts](src/i18n/locales.ts)
+lists them. The language menu has its own order: English first, as the way
+out for someone in a language they can't read, then the languages the
+visitor's browser asks for, then the rest by their own names under one fixed
+collation, so the list is the same for everyone.
+
+**Choosing a language.** The server picks it per request: the `locale` cookie
+if the visitor chose one in the menu, otherwise the best match for
+`Accept-Language`, otherwise English. Nothing about the language is in the
+URL, so a shared counter link opens in each reader's own language. The cost is
+that every page reads the request and none is prerendered.
+
+**Messages.** `src/i18n/messages/en.ts` defines the set and its type; every
+other file must have exactly the same keys, which the type checker and
+`messages.test.ts` both enforce. Components read them with `useI18n()`.
+Placeholders are `{name}` and filled with `fill()`. A message that depends on
+a number is an object with one string per plural category of the language
+(`one`, `few`, `many`, `other` and so on), chosen by `plural()`; the test
+fails if a language is missing a category `Intl.PluralRules` says it has.
+Only the language being shown is sent to the browser.
+
+**Adding a language.** Add it to `LOCALES`, add its file under `messages/`
+and its line in `messages/index.ts`. If browsers don't know the code, give it
+an `intl` tag they do know, as `arz` and `pcm` have; an unknown tag makes
+`Intl` fall back to the system language without saying so.
+
+**Right to left.** Arabic, Urdu and Egyptian Arabic set `dir="rtl"` on the
+page and load the theme and the style plugin that mirror MUI's components.
+The direction is fixed when the page first renders, which is why changing
+language reloads the page instead of refreshing it in place. The copyright
+line stays left to right in every language: it is Latin text, and its year
+range reads backwards otherwise.
+
+The translations were written without native speakers reviewing them.
 
 ## Things that will bite you
 
