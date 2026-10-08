@@ -9,6 +9,8 @@ const eslintConfig = defineConfig([
     // Override default ignores of eslint-config-next.
     globalIgnores([
         'coverage/**',
+        // Other checkouts of this repository, each with its own build output
+        '.claude/worktrees/**',
     ]),
 ])
 
