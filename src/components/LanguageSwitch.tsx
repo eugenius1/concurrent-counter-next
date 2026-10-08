@@ -1,12 +1,18 @@
 "use client";
 import * as React from "react";
+import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Tooltip from "@mui/material/Tooltip";
 import TranslateOutlined from "@mui/icons-material/TranslateOutlined";
 import { useI18n } from "@/i18n/I18nProvider";
-import { LOCALE_COOKIE, LOCALES, type Locale } from "@/i18n/locales";
+import {
+  LOCALE_COOKIE,
+  localeName,
+  menuOrder,
+  type Locale,
+} from "@/i18n/locales";
 
 /** Keeps the choice for a year, for the server to read on the next load. */
 function rememberLocale(locale: Locale) {
@@ -16,6 +22,9 @@ function rememberLocale(locale: Locale) {
 export default function LanguageSwitch() {
   const { locale, m } = useI18n();
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
+  // Worked out when the menu opens: the browser's languages aren't known on
+  // the server
+  const [order, setOrder] = React.useState(() => menuOrder([]));
 
   const choose = (chosen: Locale) => {
     setAnchor(null);
@@ -26,6 +35,19 @@ export default function LanguageSwitch() {
     window.location.reload();
   };
 
+  const item = (code: Locale) => (
+    // Each name is in its own language, whatever the page is in
+    <MenuItem
+      key={code}
+      lang={code}
+      role="menuitemradio"
+      selected={code === locale}
+      onClick={() => choose(code)}
+    >
+      {localeName(code)}
+    </MenuItem>
+  );
+
   return (
     <>
       <Tooltip title={m.language}>
@@ -35,7 +57,10 @@ export default function LanguageSwitch() {
           aria-controls={anchor ? "language-menu" : undefined}
           aria-expanded={anchor ? "true" : undefined}
           color="inherit"
-          onClick={(event) => setAnchor(event.currentTarget)}
+          onClick={(event) => {
+            setOrder(menuOrder(navigator.languages ?? []));
+            setAnchor(event.currentTarget);
+          }}
         >
           <TranslateOutlined />
         </IconButton>
@@ -48,18 +73,9 @@ export default function LanguageSwitch() {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        {LOCALES.map(({ code, name }) => (
-          // Each name is in its own language, whatever the page is in
-          <MenuItem
-            key={code}
-            lang={code}
-            role="menuitemradio"
-            selected={code === locale}
-            onClick={() => choose(code)}
-          >
-            {name}
-          </MenuItem>
-        ))}
+        {order.pinned.map(item)}
+        <Divider />
+        {order.rest.map(item)}
       </Menu>
     </>
   );

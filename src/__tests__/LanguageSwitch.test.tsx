@@ -15,7 +15,10 @@ describe("LanguageSwitch Component", () => {
     jest.restoreAllMocks();
   });
 
-  it("lists the languages by number of speakers, each in its own name", async () => {
+  it("lists English, then the browser's languages, then the rest by name", async () => {
+    jest
+      .spyOn(navigator, "languages", "get")
+      .mockReturnValue(["sw-TZ", "sw", "en"]);
     const user = userEvent.setup();
     render(<LanguageSwitch />);
 
@@ -24,26 +27,27 @@ describe("LanguageSwitch Component", () => {
     const items = screen.getAllByRole("menuitemradio");
     expect(items.map((item) => item.textContent)).toEqual([
       "English",
-      "中文",
-      "हिन्दी",
-      "Español",
-      "العربية",
-      "Français",
-      "বাংলা",
-      "Português",
+      "Kiswahili",
       "Bahasa Indonesia",
-      "اردو",
-      "Русский",
       "Deutsch",
-      "日本語",
+      "Español",
+      "Français",
       "Naijá",
+      "Português",
+      "Tiếng Việt",
+      "Русский",
+      "اردو",
+      "العربية",
       "مصرى",
       "मराठी",
-      "Tiếng Việt",
+      "हिन्दी",
+      "বাংলা",
       "తెలుగు",
-      "Kiswahili",
+      "中文",
+      "日本語",
     ]);
-    expect(items.at(-1)).toHaveAttribute("lang", "sw");
+    expect(items[1]).toHaveAttribute("lang", "sw");
+    expect(screen.getByRole("menuitemradio", { checked: true })).toBe(items[0]);
   });
 
   it("remembers the language picked", async () => {

@@ -1,4 +1,11 @@
-import { intlTag, LOCALES, localeDir, matchLocale } from "./locales";
+import {
+  intlTag,
+  LOCALES,
+  localeDir,
+  localeName,
+  matchLocale,
+  menuOrder,
+} from "./locales";
 
 describe("matchLocale", () => {
   it.each([
@@ -55,5 +62,42 @@ describe("LOCALES", () => {
         Intl.PluralRules.supportedLocalesOf(intlTag(code)).length,
       ]).toEqual([code, 1]);
     }
+  });
+});
+
+describe("menuOrder", () => {
+  it("puts English first and the rest in order of their own names", () => {
+    const { pinned, rest } = menuOrder([]);
+
+    expect(pinned).toEqual(["en"]);
+    expect(rest.map(localeName)).toEqual([
+      "Bahasa Indonesia",
+      "Deutsch",
+      "Español",
+      "Français",
+      "Kiswahili",
+      "Naijá",
+      "Português",
+      "Tiếng Việt",
+      "Русский",
+      "اردو",
+      "العربية",
+      "مصرى",
+      "मराठी",
+      "हिन्दी",
+      "বাংলা",
+      "తెలుగు",
+      "中文",
+      "日本語",
+    ]);
+  });
+
+  it("puts the browser's languages after English, most preferred first", () => {
+    const { pinned, rest } = menuOrder(["sw-TZ", "it", "fr", "en-GB", "sw"]);
+
+    expect(pinned).toEqual(["en", "sw", "fr"]);
+    expect(rest).not.toContain("sw");
+    expect(rest).not.toContain("fr");
+    expect(pinned.length + rest.length).toBe(LOCALES.length);
   });
 });

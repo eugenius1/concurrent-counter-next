@@ -158,7 +158,10 @@ tries again.
 
 The languages are the most spoken in the world by total speakers (Ethnologue
 2026), in that order, down to Swahili. [src/i18n/locales.ts](src/i18n/locales.ts)
-lists them; the language menu shows them in the same order.
+lists them. The language menu has its own order: English first, as the way
+out for someone in a language they can't read, then the languages the
+visitor's browser asks for, then the rest by their own names under one fixed
+collation, so the list is the same for everyone.
 
 **Choosing a language.** The server picks it per request: the `locale` cookie
 if the visitor chose one in the menu, otherwise the best match for

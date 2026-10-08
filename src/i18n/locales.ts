@@ -1,6 +1,7 @@
 /**
  * The languages the app is translated into: the most spoken in the world by
- * total speakers (Ethnologue 2026), in that order, down to Swahili.
+ * total speakers (Ethnologue 2026), in that order, down to Swahili. The menu
+ * has its own order; see `menuOrder`.
  *
  * `intl` is the tag handed to `Intl` for plural rules and number formatting,
  * where it differs from the code: browsers know few rules for `arz` and
@@ -55,7 +56,7 @@ export function intlTag(locale: Locale): string {
 }
 
 /** The translation for one language tag a browser sent, if there is one. */
-function forTag(tag: string): Locale | undefined {
+export function forTag(tag: string): Locale | undefined {
   const lower = tag.toLowerCase();
   // Egypt's Arabic has its own translation; every other Arabic gets Standard
   if (lower === "ar-eg") return "arz";
@@ -86,4 +87,32 @@ export function matchLocale(acceptLanguage: string | null | undefined): Locale {
     if (locale) return locale;
   }
   return DEFAULT_LOCALE;
+}
+
+// One fixed collation, so the list is in the same order for every visitor:
+// Latin-script names first, then the other scripts, each grouped together
+const byName = new Intl.Collator("en");
+
+/**
+ * The languages in the order the menu offers them. English leads, as the way
+ * out for someone in a language they can't read; then the visitor's own
+ * languages, most preferred first; then the rest by their own names.
+ */
+export function menuOrder(browserTags: readonly string[]): {
+  pinned: Locale[];
+  rest: Locale[];
+} {
+  const pinned: Locale[] = [DEFAULT_LOCALE];
+  for (const tag of browserTags) {
+    const locale = forTag(tag);
+    if (locale && !pinned.includes(locale)) pinned.push(locale);
+  }
+  const rest = LOCALES.filter(({ code }) => !pinned.includes(code))
+    .sort((a, b) => byName.compare(a.name, b.name))
+    .map(({ code }) => code);
+  return { pinned, rest };
+}
+
+export function localeName(locale: Locale): string {
+  return LOCALES.find(({ code }) => code === locale)!.name;
 }
