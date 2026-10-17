@@ -49,7 +49,9 @@ export function eventStream(
           // Already closed by the client
         }
       };
-      request.signal.addEventListener("abort", close);
+      // A client that left before this ran never fires `abort`
+      if (request.signal.aborted) close();
+      else request.signal.addEventListener("abort", close);
 
       try {
         await open({

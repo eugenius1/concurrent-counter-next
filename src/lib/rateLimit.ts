@@ -65,7 +65,10 @@ export function clientKey(request: Request): string {
     ?.split(",")
     .at(-1)
     ?.trim()
-    .toLowerCase();
+    .toLowerCase()
+    // Some proxies write the port too, which changes with every connection
+    .replace(/^\[([^\]]+)\](:\d+)?$/, "$1")
+    .replace(/^(\d+\.\d+\.\d+\.\d+):\d+$/, "$1");
   if (!address) return "unknown";
   if (!address.includes(":")) return address;
 

@@ -49,6 +49,7 @@ health check on `/api/health`. Open pull requests against `main`.
 | [src/lib/counterCount.ts](src/lib/counterCount.ts) | The number of counters, read once and shared by every homepage stream. |
 | [src/lib/rateLimit.ts](src/lib/rateLimit.ts) | Per-client limits on writes and on open streams, and the limits themselves. |
 | [src/lib/sameOrigin.ts](src/lib/sameOrigin.ts) | Rejects writes that another website made a browser send. |
+| [src/lib/readJson.ts](src/lib/readJson.ts) | Reads a write's JSON body, refusing one larger than any write needs. |
 | `src/app/api/counters/` | Route handlers: create, increment, and the two event streams. |
 | [src/app/api/health/route.ts](src/app/api/health/route.ts) | Health check that queries the database. |
 | [src/app/page.tsx](src/app/page.tsx) | The homepage: creates a counter, shows how many exist, and shows the demo counter. |
@@ -145,6 +146,9 @@ a browser send, judged by `Sec-Fetch-Site`, or by `Origin` against `Host` in
 browsers that don't send it. Otherwise any website could press or create
 counters from each of its visitors' addresses, and no per-address limit would
 notice. A request with neither header is not from a browser and is allowed.
+
+An increment's body is read only up to 1 KB and refused past that, since
+`request.json()` would hold a body of any size in memory before parsing it.
 
 These stop one script or one hostile page. They do not stop someone with many
 addresses; that needs a limit at the proxy or a challenge in front of it.

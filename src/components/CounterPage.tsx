@@ -43,7 +43,8 @@ export default function CounterPage({
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      <LiveCounter id={id} initialValue={initialValue} />
+      {/* Keyed so that moving to another counter doesn't show this one's value */}
+      <LiveCounter key={id} id={id} initialValue={initialValue} />
 
       <Typography align="center" sx={{ mt: 4, mb: 2, color: "text.secondary" }}>
         {m.anyoneWithLink}

@@ -28,7 +28,14 @@ async function listen() {
     CHANNEL,
     (payload) => {
       const change = JSON.parse(payload) as CounterChange;
-      subscribers.forEach((subscriber) => subscriber.onChange(change));
+      // One stream that fails to take a change must not keep it from the rest
+      subscribers.forEach((subscriber) => {
+        try {
+          subscriber.onChange(change);
+        } catch (error) {
+          console.error("Error sending counter change:", error);
+        }
+      });
     },
     () => {
       // Called on the first listen and again after every reconnect

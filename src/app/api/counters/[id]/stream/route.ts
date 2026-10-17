@@ -40,7 +40,9 @@ export async function GET(
     const [counter] = await sql<Counter[]>`
       SELECT id, value FROM counters WHERE id = ${id}
     `;
-    if (counter) sendChange(counter);
+    // A valid id with no counter behind it would hold a stream open for nothing
+    if (!counter) return close();
+    sendChange(counter);
     pending.forEach(sendChange);
     pending = null;
   });

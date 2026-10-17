@@ -62,7 +62,7 @@ async function recount() {
     current.busy = false;
     if (current.stale) {
       current.stale = false;
-      void recount();
+      invalidate();
     }
   }, RECOUNT_MS);
 }
@@ -72,6 +72,8 @@ async function recount() {
 function invalidate() {
   const current = state();
   if (current.busy) current.stale = true;
+  // Nobody to tell: forget the count, and the next listener asks for one
+  else if (current.listeners.size === 0) current.count = undefined;
   else void recount();
 }
 

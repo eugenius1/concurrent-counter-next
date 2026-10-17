@@ -91,6 +91,15 @@ describe("GET /api/counters/:id/stream", () => {
     abort.abort();
   });
 
+  it("ends the stream for a counter that doesn't exist", async () => {
+    sql.mockResolvedValue([]);
+
+    const { read } = await open();
+
+    expect(await read()).toBeNull();
+    expect(unsubscribe).toHaveBeenCalled();
+  });
+
   it("rejects an id that is not a ULID", async () => {
     const { response } = await open("not-a-ulid");
 
@@ -106,6 +115,29 @@ describe("GET /api/counters/:id/stream", () => {
 
     expect(await read()).toBeNull();
     expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  it("gives the stream back at once if the client left before it opened", async () => {
+    const client = { "X-Forwarded-For": "203.0.113.8" };
+    const abort = new AbortController();
+    abort.abort();
+    const request = (signal?: AbortSignal) =>
+      new Request(`http://localhost/api/counters/${counter.id}/stream`, {
+        signal,
+        headers: client,
+      });
+
+    for (let i = 0; i < MAX_STREAMS; i++) {
+      await GET(request(abort.signal), {
+        params: Promise.resolve({ id: counter.id }),
+      });
+    }
+    const response = await GET(request(), {
+      params: Promise.resolve({ id: counter.id }),
+    });
+
+    expect(response.status).toBe(200);
+    await response.body!.cancel();
   });
 
   it("ends the stream when the database listener reconnects", async () => {
