@@ -21,6 +21,15 @@ const globalForEvents = globalThis as unknown as {
 
 const subscribers = (globalForEvents.counterSubscribers ??= new Set());
 
+// One stream that fails to take an event must not keep it from the rest
+function isolated(notify: () => void) {
+  try {
+    notify();
+  } catch (error) {
+    console.error("Error notifying a counter subscriber:", error);
+  }
+}
+
 async function listen() {
   const sql = await db();
   let listening = false;
@@ -28,19 +37,16 @@ async function listen() {
     CHANNEL,
     (payload) => {
       const change = JSON.parse(payload) as CounterChange;
-      // One stream that fails to take a change must not keep it from the rest
-      subscribers.forEach((subscriber) => {
-        try {
-          subscriber.onChange(change);
-        } catch (error) {
-          console.error("Error sending counter change:", error);
-        }
-      });
+      subscribers.forEach((subscriber) =>
+        isolated(() => subscriber.onChange(change)),
+      );
     },
     () => {
       // Called on the first listen and again after every reconnect
       if (listening) {
-        [...subscribers].forEach((subscriber) => subscriber.onReset());
+        [...subscribers].forEach((subscriber) =>
+          isolated(() => subscriber.onReset()),
+        );
       }
       listening = true;
     },

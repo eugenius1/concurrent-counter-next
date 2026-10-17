@@ -137,6 +137,8 @@ describe("GET /api/counters/:id/stream", () => {
     });
 
     expect(response.status).toBe(200);
+    // Only the last request, which was still connected, subscribed
+    expect(subscribeToCounters).toHaveBeenCalledTimes(1);
     await response.body!.cancel();
   });
 
