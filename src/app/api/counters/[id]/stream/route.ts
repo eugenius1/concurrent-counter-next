@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { subscribeToCounters } from "@/lib/counterEvents";
-import { db, isCounterId, type Counter } from "@/lib/db";
+import { getCounter, isCounterId, type Counter } from "@/lib/db";
 import { eventStream } from "@/lib/eventStream";
 
 export const dynamic = "force-dynamic";
@@ -27,8 +27,8 @@ export async function GET(
     let pending: Counter[] | null = [];
     onClose(
       await subscribeToCounters({
+        id,
         onChange: (change) => {
-          if (change.id !== id) return;
           if (pending) pending.push(change);
           else sendChange(change);
         },
@@ -36,10 +36,7 @@ export async function GET(
       }),
     );
 
-    const sql = await db();
-    const [counter] = await sql<Counter[]>`
-      SELECT id, value FROM counters WHERE id = ${id}
-    `;
+    const counter = await getCounter(id);
     // A valid id with no counter behind it would hold a stream open for nothing
     if (!counter) return close();
     sendChange(counter);

@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, Container, Snackbar, Typography } from "@mui/material";
+import { Box, Button, Snackbar, Typography } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ShareIcon from "@mui/icons-material/Share";
 import { useI18n } from "@/i18n/I18nProvider";
 import LiveCounter from "./LiveCounter";
-import Copyright from "./Copyright";
 
 export default function CounterPage({
   id,
@@ -42,7 +41,7 @@ export default function CounterPage({
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <>
       {/* Keyed so that moving to another counter doesn't show this one's value */}
       <LiveCounter key={id} id={id} initialValue={initialValue} />
 
@@ -80,10 +79,6 @@ export default function CounterPage({
         onClose={() => setNotice("")}
         message={notice}
       />
-
-      <Box sx={{ mt: 8, mb: 4 }}>
-        <Copyright />
-      </Box>
-    </Container>
+    </>
   );
 }

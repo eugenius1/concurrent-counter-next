@@ -11,10 +11,6 @@ describe("LanguageSwitch Component", () => {
     jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it("lists English, then the browser's languages, then the rest by name", async () => {
     jest
       .spyOn(navigator, "languages", "get")

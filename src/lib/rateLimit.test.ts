@@ -43,10 +43,6 @@ describe("rateLimit", () => {
     jest.spyOn(Date, "now").mockImplementation(() => now);
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it("allows a burst, then answers 429 with when to retry", async () => {
     const request = from("203.0.113.1");
 

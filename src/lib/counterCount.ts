@@ -50,10 +50,9 @@ async function recount() {
     }
   } catch (error) {
     console.error("Error counting counters:", error);
-    // Forgotten, so the next listener to arrive asks for it again
-    current.count = undefined;
     const listeners = [...current.listeners];
     current.listeners.clear();
+    // Forgets the count too, so the next listener to arrive asks for it again
     release();
     listeners.forEach((listener) => listener.onError());
   }

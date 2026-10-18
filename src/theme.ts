@@ -9,15 +9,7 @@ const roboto = Roboto({
 });
 
 const options: Parameters<typeof extendTheme>[0] = {
-  colorSchemes: {
-    light: {
-      palette: {},
-    },
-    dark: {
-      palette: {},
-    },
-  },
-  cssVarPrefix: "mui",
+  colorSchemes: { light: true, dark: true },
   // Without this the colours follow only the OS preference and the theme
   // menu changes nothing. Matches InitColorSchemeScript in the layout.
   colorSchemeSelector: "class",
