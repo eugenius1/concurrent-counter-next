@@ -245,6 +245,23 @@ dependency conflict.
 **MUI 9 has no system props on `Box`.** `display`, `gap` and the like go in
 `sx`; as props they are a type error.
 
+## Claude review on PRs
+
+`.github/workflows/claude-review.yml` runs Claude's `/code-review` and
+`/security-review`, from the shared actions in
+[eugenius1/actions](https://github.com/eugenius1/actions), on every non-draft
+PR from this repo and posts findings as
+inline comments. It runs on the owner's Claude plan through the
+`CLAUDE_CODE_OAUTH_TOKEN` secret (made with `claude setup-token`; renew it when
+it expires), so fork and Dependabot PRs, which can't read it, are skipped. It
+reports but isn't a required check.
+
+A PR that edits the workflow is never reviewed by it: the action exits green
+in seconds, doing nothing, when the file differs from the one on `main`. Keep
+such PRs free of other code.
+A change to the shared actions reaches every repo's next PR as soon as it is
+merged there.
+
 ## Conventions
 
 - `npm run validate` must pass before every commit.
