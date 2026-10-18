@@ -3,13 +3,10 @@ export const MAX_BODY_BYTES = 1024;
 
 /**
  * The request body parsed as JSON, or null if it isn't JSON or is longer than
- * `maxBytes`. Reading stops at the limit; `request.json()` would hold a body
+ * `MAX_BODY_BYTES`. Reading stops at the limit; `request.json()` would hold a body
  * of any size in memory first, and nothing in front of the app caps it.
  */
-export async function readJson(
-  request: Request,
-  maxBytes = MAX_BODY_BYTES,
-): Promise<unknown> {
+export async function readJson(request: Request): Promise<unknown> {
   if (!request.body) return null;
   const reader = request.body.getReader();
   const chunks: Uint8Array[] = [];
@@ -19,7 +16,7 @@ export async function readJson(
       const { done, value } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > maxBytes) {
+      if (size > MAX_BODY_BYTES) {
         await reader.cancel();
         return null;
       }

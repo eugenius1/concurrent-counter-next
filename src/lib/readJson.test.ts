@@ -16,7 +16,7 @@ describe("readJson", () => {
     },
   );
 
-  it("gives null for a body past the limit, without reading all of it", async () => {
+  it("gives null for a body past the limit", async () => {
     const body = JSON.stringify({ by: 1, padding: "x".repeat(MAX_BODY_BYTES) });
 
     expect(await readJson(post(body))).toBeNull();

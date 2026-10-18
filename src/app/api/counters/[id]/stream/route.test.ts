@@ -27,17 +27,19 @@ describe("GET /api/counters/:id/stream", () => {
   const open = async (
     id = counter.id,
     headers: Record<string, string> = {},
+    { aborted = false } = {},
   ) => {
     const abort = new AbortController();
+    if (aborted) abort.abort();
     const request = new Request(`http://localhost/api/counters/${id}/stream`, {
       signal: abort.signal,
       headers,
     });
     const response = await GET(request, { params: Promise.resolve({ id }) });
-    const reader = response.body!.getReader();
+    const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     const read = async () => {
-      const { value, done } = await reader.read();
+      const { value, done } = await reader!.read();
       return done ? null : decoder.decode(value);
     };
     return { response, read, abort };
@@ -117,29 +119,18 @@ describe("GET /api/counters/:id/stream", () => {
     expect(unsubscribe).toHaveBeenCalled();
   });
 
-  it("gives the stream back at once if the client left before it opened", async () => {
+  it("takes no stream for a client that left before it opened", async () => {
     const client = { "X-Forwarded-For": "203.0.113.8" };
-    const abort = new AbortController();
-    abort.abort();
-    const request = (signal?: AbortSignal) =>
-      new Request(`http://localhost/api/counters/${counter.id}/stream`, {
-        signal,
-        headers: client,
-      });
-
     for (let i = 0; i < MAX_STREAMS; i++) {
-      await GET(request(abort.signal), {
-        params: Promise.resolve({ id: counter.id }),
-      });
+      await open(counter.id, client, { aborted: true });
     }
-    const response = await GET(request(), {
-      params: Promise.resolve({ id: counter.id }),
-    });
+
+    const { response, abort } = await open(counter.id, client);
 
     expect(response.status).toBe(200);
     // Only the last request, which was still connected, subscribed
     expect(subscribeToCounters).toHaveBeenCalledTimes(1);
-    await response.body!.cancel();
+    abort.abort();
   });
 
   it("ends the stream when the database listener reconnects", async () => {

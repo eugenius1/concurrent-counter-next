@@ -20,46 +20,30 @@ describe("subscribeToCounters", () => {
     });
   });
 
-  it("hands a change to every subscriber, even after one throws", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-    const failing = {
-      onChange: jest.fn(() => {
+  it.each([
+    ["a change", "onChange", () => notify(JSON.stringify(change))],
+    ["a reconnect", "onReset", () => reconnected()],
+  ] as const)(
+    "tells every subscriber of %s, even after one throws",
+    async (_, callback, trigger) => {
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+      const failing = { onChange: jest.fn(), onReset: jest.fn() };
+      failing[callback].mockImplementation(() => {
         throw new Error("stream closed");
-      }),
-      onReset: jest.fn(),
-    };
-    const working = { onChange: jest.fn(), onReset: jest.fn() };
-    const unsubscribeFailing = await subscribeToCounters(failing);
-    const unsubscribeWorking = await subscribeToCounters(working);
+      });
+      const working = { onChange: jest.fn(), onReset: jest.fn() };
+      const unsubscribes = [
+        await subscribeToCounters(failing),
+        await subscribeToCounters(working),
+      ];
 
-    expect(() => notify(JSON.stringify(change))).not.toThrow();
+      expect(trigger).not.toThrow();
 
-    expect(failing.onChange).toHaveBeenCalledWith(change);
-    expect(working.onChange).toHaveBeenCalledWith(change);
-    expect(consoleSpy).toHaveBeenCalled();
-    unsubscribeFailing();
-    unsubscribeWorking();
-    consoleSpy.mockRestore();
-  });
-
-  it("tells every subscriber of a reconnect, even after one throws", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
-    const failing = {
-      onChange: jest.fn(),
-      onReset: jest.fn(() => {
-        throw new Error("stream closed");
-      }),
-    };
-    const working = { onChange: jest.fn(), onReset: jest.fn() };
-    const unsubscribeFailing = await subscribeToCounters(failing);
-    const unsubscribeWorking = await subscribeToCounters(working);
-
-    expect(() => reconnected()).not.toThrow();
-
-    expect(failing.onReset).toHaveBeenCalled();
-    expect(working.onReset).toHaveBeenCalled();
-    unsubscribeFailing();
-    unsubscribeWorking();
-    consoleSpy.mockRestore();
-  });
+      expect(failing[callback]).toHaveBeenCalled();
+      expect(working[callback]).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalled();
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+      consoleSpy.mockRestore();
+    },
+  );
 });

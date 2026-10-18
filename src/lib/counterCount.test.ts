@@ -122,20 +122,22 @@ describe("subscribeToCount", () => {
     expect(first.onCount).toHaveBeenCalledTimes(1);
   });
 
-  it("doesn't count while nobody listens, and counts afresh for the next", async () => {
+  it("lets go of the subscription when the last listener leaves", async () => {
     const first = await listen();
     await jest.advanceTimersByTimeAsync(RECOUNT_MS);
+    const [release] = await Promise.all(
+      (subscribeToCounters as jest.Mock).mock.results.map((r) => r.value),
+    );
+
     first.unsubscribe();
+    await settle();
+    expect(release).toHaveBeenCalled();
 
     sql.mockResolvedValue([{ count: 3 }]);
-    source.onChange(created);
-    await jest.advanceTimersByTimeAsync(RECOUNT_MS);
-    expect(sql).toHaveBeenCalledTimes(1);
-
     const second = await listen();
     await settle();
 
-    expect(sql).toHaveBeenCalledTimes(2);
+    expect(subscribeToCounters).toHaveBeenCalledTimes(2);
     expect(second.onCount.mock.calls).toEqual([[3]]);
   });
 
