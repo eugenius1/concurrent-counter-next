@@ -29,7 +29,7 @@ export default function Home() {
       typeof result === "string"
         ? undefined
         : await result.json().then(
-            (body: { id?: string }) => body.id,
+            (body: { id?: string } | null) => body?.id,
             () => undefined,
           );
     if (!id) {

@@ -113,13 +113,16 @@ describe("Home Component", () => {
     );
   });
 
-  it("stays on the homepage when the new counter's id can't be read", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => {
+  it.each([
+    [
+      "a body that isn't JSON",
+      async () => {
         throw new SyntaxError("Unexpected end of JSON input");
       },
-    });
+    ],
+    ["a null body", async () => null],
+  ])("stays on the homepage after %s", async (_, json) => {
+    mockFetch.mockResolvedValue({ ok: true, json });
 
     renderHome();
     fireEvent.click(screen.getByText("Create New Counter"));
