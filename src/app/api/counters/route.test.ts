@@ -16,10 +16,6 @@ describe("POST /api/counters", () => {
     (db as jest.Mock).mockReset();
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it("creates a counter with a generated id", async () => {
     const counter = { id: "01HQ8XVNZ8YRTKP6QXDJ8W12N3", value: "0" };
     const sql = jest.fn().mockResolvedValue([counter]);
@@ -33,13 +29,12 @@ describe("POST /api/counters", () => {
   });
 
   it("returns 500 when the insert fails", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    jest.spyOn(console, "error").mockImplementation();
     (db as jest.Mock).mockRejectedValue(new Error("connection refused"));
 
     const response = await create();
 
     expect(response.status).toBe(500);
-    consoleSpy.mockRestore();
   });
 
   it("rejects a request sent from another site", async () => {

@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const sql = await db();
     await sql`SELECT 1`;
-    return NextResponse.json({ status: "healthy", timestamp }, { status: 200 });
+    return NextResponse.json({ status: "healthy", timestamp });
   } catch (error) {
     console.error("Health check failed:", error);
     return NextResponse.json(

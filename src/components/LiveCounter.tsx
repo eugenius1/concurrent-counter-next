@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Counter from "./Counter";
+import { useEventStream } from "./useEventStream";
 
 /**
  * A counter kept current by its own event stream. Without an initial value
@@ -16,19 +17,12 @@ export default function LiveCounter({
 }) {
   const [value, setValue] = useState(initialValue);
 
-  useEffect(() => {
-    // The stream sends the current value first, then every change.
-    // EventSource reconnects on its own and receives the current value again.
-    const events = new EventSource(`/api/counters/${id}/stream`);
-
-    events.addEventListener("change", (event) => {
-      setValue(JSON.parse(event.data).value);
-    });
-
-    return () => {
-      events.close();
-    };
-  }, [id]);
+  // The current value first, then every change
+  useEventStream<{ value: string }>(
+    `/api/counters/${id}/stream`,
+    "change",
+    (change) => setValue(change.value),
+  );
 
   return value === undefined ? null : <Counter id={id} value={value} />;
 }

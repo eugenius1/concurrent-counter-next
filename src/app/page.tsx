@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Container, Button, Typography, Box } from "@mui/material";
+import { Button, Typography, Box } from "@mui/material";
 import AddCircleOutlinedIcon from "@mui/icons-material/AddCircleOutlined";
-import Copyright from "../components/Copyright";
 import ErrorToast from "../components/ErrorToast";
 import LiveCounter from "../components/LiveCounter";
+import { postWrite } from "../components/postWrite";
+import { useEventStream } from "../components/useEventStream";
 import { DEMO_COUNTER_ID } from "../lib/demoCounter";
 import { plural } from "@/i18n/format";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -18,41 +19,26 @@ export default function Home() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    // The stream sends the number of counters, and again whenever one is
-    // created. EventSource reconnects on its own and receives it afresh.
-    const events = new EventSource("/api/counters/stream");
-
-    events.addEventListener("count", (event) => {
-      setCount(JSON.parse(event.data));
-    });
-
-    return () => {
-      events.close();
-    };
-  }, []);
+  // The number of counters, sent again whenever one is created
+  useEventStream("/api/counters/stream", "count", setCount);
 
   const createCounter = async () => {
     setCreating(true);
-    let rateLimited = false;
-    try {
-      const response = await fetch("/api/counters", { method: "POST" });
-      rateLimited = response.status === 429;
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-      const { id } = await response.json();
-      // The button stays disabled until the counter's page replaces this one
-      router.push(`/c/${id}`);
-    } catch (error) {
-      console.error("Error creating counter:", error);
+    const result = await postWrite("/api/counters");
+    if (typeof result === "string") {
       setCreating(false);
-      setError(rateLimited ? m.createRateLimited : m.createFailed);
+      setError(
+        result === "rateLimited" ? m.createRateLimited : m.createFailed,
+      );
+      return;
     }
+    const { id } = await result.json();
+    // The button stays disabled until the counter's page replaces this one
+    router.push(`/c/${id}`);
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <>
       <Typography variant="h5" component="h1" align="center" sx={{ mb: 4 }}>
         {m.tagline}
       </Typography>
@@ -60,7 +46,6 @@ export default function Home() {
       <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
         <Button
           variant="contained"
-          color="primary"
           onClick={createCounter}
           loading={creating}
           loadingPosition="start"
@@ -83,10 +68,6 @@ export default function Home() {
       <LiveCounter id={DEMO_COUNTER_ID} />
 
       <ErrorToast message={error} onClose={() => setError("")} />
-
-      <Box sx={{ mt: 8, mb: 4 }}>
-        <Copyright />
-      </Box>
-    </Container>
+    </>
   );
 }

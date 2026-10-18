@@ -90,7 +90,7 @@ describe("Home Component", () => {
 
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith(
-        "Error creating counter:",
+        "Error posting to /api/counters:",
         expect.any(Error),
       );
     });
@@ -99,12 +99,10 @@ describe("Home Component", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Couldn't create a counter. Try again later.",
     );
-
-    consoleSpy.mockRestore();
   });
 
   it("says so when too many counters have been created", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    jest.spyOn(console, "error").mockImplementation();
     mockFetch.mockResolvedValue({ ok: false, status: 429 });
 
     renderHome();
@@ -113,7 +111,6 @@ describe("Home Component", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "You've created a lot of counters. Try again in a minute.",
     );
-    consoleSpy.mockRestore();
   });
 
   it("is in the visitor's language", () => {
