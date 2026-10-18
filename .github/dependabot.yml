@@ -15,18 +15,3 @@ updates:
           - "*"
         update-types:
           - major
-
-  # Unlike the actions above, whose tags float within a major, npm pins exact
-  # versions, so minor and patch releases need PRs too. They come grouped into
-  # one, and each major on its own.
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-    groups:
-      npm:
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
