@@ -113,6 +113,24 @@ describe("Home Component", () => {
     );
   });
 
+  it("stays on the homepage when the new counter's id can't be read", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => {
+        throw new SyntaxError("Unexpected end of JSON input");
+      },
+    });
+
+    renderHome();
+    fireEvent.click(screen.getByText("Create New Counter"));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn't create a counter. Try again later.",
+    );
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.getByText("Create New Counter")).toBeEnabled();
+  });
+
   it("is in the visitor's language", () => {
     render(
       <I18nProvider locale="sw" messages={sw}>

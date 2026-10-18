@@ -25,14 +25,20 @@ export default function Home() {
   const createCounter = async () => {
     setCreating(true);
     const result = await postWrite("/api/counters");
-    if (typeof result === "string") {
+    const id =
+      typeof result === "string"
+        ? undefined
+        : await result.json().then(
+            (body: { id?: string }) => body.id,
+            () => undefined,
+          );
+    if (!id) {
       setCreating(false);
       setError(
         result === "rateLimited" ? m.createRateLimited : m.createFailed,
       );
       return;
     }
-    const { id } = await result.json();
     // The button stays disabled until the counter's page replaces this one
     router.push(`/c/${id}`);
   };
