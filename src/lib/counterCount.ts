@@ -13,8 +13,8 @@ export interface CountListener {
 interface CountState {
   listeners: Set<CountListener>;
   count?: number;
-  /** The subscription to counter changes, made once and kept. */
-  source?: Promise<unknown>;
+  /** The subscription to counter changes, held while anyone listens. */
+  source?: Promise<() => void>;
   /** A count is being read. */
   reading: boolean;
   /** A count was read less than `RECOUNT_MS` ago, or is being read. */
@@ -54,6 +54,7 @@ async function recount() {
     current.count = undefined;
     const listeners = [...current.listeners];
     current.listeners.clear();
+    release();
     listeners.forEach((listener) => listener.onError());
   }
   current.reading = false;
@@ -75,6 +76,15 @@ function invalidate() {
   else void recount();
 }
 
+// With nobody listening, creates would still be counted for no one. The next
+// listener subscribes again and counts afresh.
+function release() {
+  const current = state();
+  void current.source?.then((unsubscribe) => unsubscribe(), () => {});
+  current.source = undefined;
+  current.count = undefined;
+}
+
 /**
  * Tells the listener how many counters exist, now and whenever one is
  * created; resolves to an unsubscribe function.
@@ -89,7 +99,7 @@ export async function subscribeToCount(
   const current = state();
   // Subscribed before the first count, so a counter created in between
   // triggers a recount instead of being missed
-  current.source ??= subscribeToCounters({
+  const source = (current.source ??= subscribeToCounters({
     onChange: ({ created }) => {
       if (created) invalidate();
     },
@@ -98,8 +108,10 @@ export async function subscribeToCount(
   }).catch((error) => {
     current.source = undefined;
     throw error;
-  });
-  await current.source;
+  }));
+  await source;
+  // The last listener left while this one waited, taking the subscription
+  if (current.source !== source) return subscribeToCount(listener);
 
   current.listeners.add(listener);
   if (current.count !== undefined) listener.onCount(current.count);
@@ -108,5 +120,6 @@ export async function subscribeToCount(
 
   return () => {
     current.listeners.delete(listener);
+    if (current.listeners.size === 0) release();
   };
 }

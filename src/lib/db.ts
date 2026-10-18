@@ -17,6 +17,8 @@ const globalForDb = globalThis as unknown as {
   schemaReady?: Promise<void>;
 };
 
+// Created on first call, never at import: `next build` imports every route
+// with no DATABASE_URL set
 function getSql(): Sql {
   if (!globalForDb.sql) {
     const url = process.env.DATABASE_URL;

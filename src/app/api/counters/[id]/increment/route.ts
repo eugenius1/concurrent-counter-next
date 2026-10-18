@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db, isCounterId, type Counter } from "@/lib/db";
 import { INCREMENT_LIMIT, rateLimit } from "@/lib/rateLimit";
+import { readJson } from "@/lib/readJson";
 import { rejectCrossSite } from "@/lib/sameOrigin";
 
 export async function POST(
@@ -12,7 +13,7 @@ export async function POST(
   if (rejected) return rejected;
 
   const { id } = await params;
-  const body = await request.json().catch(() => null);
+  const body = (await readJson(request)) as { by?: unknown } | null;
   const by = body?.by;
 
   if (!isCounterId(id) || (by !== 1 && by !== -1)) {

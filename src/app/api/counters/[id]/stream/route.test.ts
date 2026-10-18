@@ -27,17 +27,19 @@ describe("GET /api/counters/:id/stream", () => {
   const open = async (
     id = counter.id,
     headers: Record<string, string> = {},
+    { aborted = false } = {},
   ) => {
     const abort = new AbortController();
+    if (aborted) abort.abort();
     const request = new Request(`http://localhost/api/counters/${id}/stream`, {
       signal: abort.signal,
       headers,
     });
     const response = await GET(request, { params: Promise.resolve({ id }) });
-    const reader = response.body!.getReader();
+    const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     const read = async () => {
-      const { value, done } = await reader.read();
+      const { value, done } = await reader!.read();
       return done ? null : decoder.decode(value);
     };
     return { response, read, abort };
@@ -91,6 +93,15 @@ describe("GET /api/counters/:id/stream", () => {
     abort.abort();
   });
 
+  it("ends the stream for a counter that doesn't exist", async () => {
+    sql.mockResolvedValue([]);
+
+    const { read } = await open();
+
+    expect(await read()).toBeNull();
+    expect(unsubscribe).toHaveBeenCalled();
+  });
+
   it("rejects an id that is not a ULID", async () => {
     const { response } = await open("not-a-ulid");
 
@@ -106,6 +117,20 @@ describe("GET /api/counters/:id/stream", () => {
 
     expect(await read()).toBeNull();
     expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  it("takes no stream for a client that left before it opened", async () => {
+    const client = { "X-Forwarded-For": "203.0.113.8" };
+    for (let i = 0; i < MAX_STREAMS; i++) {
+      await open(counter.id, client, { aborted: true });
+    }
+
+    const { response, abort } = await open(counter.id, client);
+
+    expect(response.status).toBe(200);
+    // Only the last request, which was still connected, subscribed
+    expect(subscribeToCounters).toHaveBeenCalledTimes(1);
+    abort.abort();
   });
 
   it("ends the stream when the database listener reconnects", async () => {

@@ -9,4 +9,7 @@ jobs:
       pull-requests: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The action lints every commit in the pull request
+          fetch-depth: 0
       - uses: wagoid/commitlint-github-action@v6

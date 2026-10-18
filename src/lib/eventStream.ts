@@ -21,6 +21,9 @@ export function eventStream(
   request: Request,
   open: (stream: EventStream) => Promise<void>,
 ): Response {
+  // A client that already left would never fire `abort` to end the stream
+  if (request.signal.aborted) return new Response(null, { status: 204 });
+
   const release = holdStream(request);
   if (release instanceof Response) return release;
 
@@ -69,6 +72,8 @@ export function eventStream(
     },
   });
 
+  // Without no-transform and X-Accel-Buffering a proxy may compress or buffer
+  // the stream, and events arrive late, in batches, or not at all
   return new Response(body, {
     headers: {
       "Content-Type": "text/event-stream",

@@ -122,6 +122,25 @@ describe("subscribeToCount", () => {
     expect(first.onCount).toHaveBeenCalledTimes(1);
   });
 
+  it("lets go of the subscription when the last listener leaves", async () => {
+    const first = await listen();
+    await jest.advanceTimersByTimeAsync(RECOUNT_MS);
+    const [release] = await Promise.all(
+      (subscribeToCounters as jest.Mock).mock.results.map((r) => r.value),
+    );
+
+    first.unsubscribe();
+    await settle();
+    expect(release).toHaveBeenCalled();
+
+    sql.mockResolvedValue([{ count: 3 }]);
+    const second = await listen();
+    await settle();
+
+    expect(subscribeToCounters).toHaveBeenCalledTimes(2);
+    expect(second.onCount.mock.calls).toEqual([[3]]);
+  });
+
   it("drops its listeners when the count can't be read, then recovers", async () => {
     const consoleSpy = jest.spyOn(console, "error").mockImplementation();
     sql.mockRejectedValue(new Error("connection refused"));

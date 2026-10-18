@@ -24,18 +24,6 @@ const options: Parameters<typeof extendTheme>[0] = {
   typography: {
     fontFamily: roboto.style.fontFamily,
   },
-  // TODO: Is this needed?
-  // components: {
-  //   MuiAlert: {
-  //     styleOverrides: {
-  //       root: ({ theme, ownerState }) => ({
-  //         ...(ownerState.severity === "info" && {
-  //           backgroundColor: "#60a5fa",
-  //         }),
-  //       }),
-  //     },
-  //   },
-  // },
 };
 
 const theme = extendTheme(options);

@@ -54,6 +54,13 @@ describe("POST /api/counters/[id]/increment", () => {
     },
   );
 
+  it("rejects a body too large to be an increment", async () => {
+    const response = await increment(id, { by: 1, padding: "x".repeat(4096) });
+
+    expect(response.status).toBe(400);
+    expect(sql).not.toHaveBeenCalled();
+  });
+
   it("rejects an id that is not a ULID", async () => {
     const response = await increment("not-a-ulid", { by: 1 });
 

@@ -26,7 +26,7 @@ export default function ModeSwitch() {
   if (!mode) {
     return null;
   }
-  const current = MODES.find((m) => m.value === mode) ?? MODES[0];
+  const current = MODES.find((entry) => entry.value === mode) ?? MODES[0];
   const label = fill(m.themeLabel, { mode: m[current.label] });
   return (
     <>
