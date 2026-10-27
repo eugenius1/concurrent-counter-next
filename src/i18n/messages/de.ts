@@ -31,8 +31,8 @@ const de: Messages = {
   themeLight: "Hell",
   themeDark: "Dunkel",
   language: "Sprache",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "Open Source",
   licenceTitle: "GNU General Public License, Version 3 oder später",
 };
 

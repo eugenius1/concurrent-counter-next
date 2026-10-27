@@ -31,8 +31,8 @@ const ru: Messages = {
   themeLight: "Светлая",
   themeDark: "Тёмная",
   language: "Язык",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "Открытый исходный код",
   licenceTitle: "GNU General Public License, версия 3 или более поздняя",
 };
 

@@ -26,8 +26,8 @@ const vi: Messages = {
   themeLight: "Sáng",
   themeDark: "Tối",
   language: "Ngôn ngữ",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "Mã nguồn mở",
   licenceTitle: "GNU General Public License, phiên bản 3 trở lên",
 };
 
