@@ -29,8 +29,8 @@ const mr: Messages = {
   themeLight: "लाइट",
   themeDark: "डार्क",
   language: "भाषा",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "ओपन सोर्स",
   licenceTitle: "GNU General Public License, आवृत्ती 3 किंवा नंतरची",
 };
 

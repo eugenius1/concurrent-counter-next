@@ -27,8 +27,8 @@ const id: Messages = {
   themeLight: "Terang",
   themeDark: "Gelap",
   language: "Bahasa",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "Sumber terbuka",
   licenceTitle: "GNU General Public License, versi 3 atau yang lebih baru",
 };
 

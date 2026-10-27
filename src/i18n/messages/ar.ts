@@ -31,8 +31,8 @@ const ar: Messages = {
   themeLight: "فاتح",
   themeDark: "داكن",
   language: "اللغة",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "مفتوح المصدر",
   licenceTitle: "GNU General Public License، الإصدار 3 أو أحدث",
 };
 

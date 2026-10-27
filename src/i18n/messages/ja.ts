@@ -31,8 +31,8 @@ const ja: Messages = {
   themeLight: "ライト",
   themeDark: "ダーク",
   language: "言語",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "オープンソース",
   licenceTitle: "GNU General Public License バージョン3以降",
 };
 

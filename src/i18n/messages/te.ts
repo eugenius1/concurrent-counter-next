@@ -31,8 +31,8 @@ const te: Messages = {
   themeLight: "లైట్",
   themeDark: "డార్క్",
   language: "భాష",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "ఓపెన్ సోర్స్",
   licenceTitle: "GNU General Public License, వెర్షన్ 3 లేదా తర్వాతది",
 };
 

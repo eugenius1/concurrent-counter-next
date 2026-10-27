@@ -30,8 +30,8 @@ const fr: Messages = {
   themeLight: "Clair",
   themeDark: "Sombre",
   language: "Langue",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "Open source",
   licenceTitle: "GNU General Public License, version 3 ou ultérieure",
 };
 

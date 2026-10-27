@@ -25,8 +25,8 @@ const en = {
   themeLight: "Light",
   themeDark: "Dark",
   language: "Language",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "Open source",
   licenceTitle: "GNU General Public License, version 3 or later",
 };
 

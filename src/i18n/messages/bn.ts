@@ -28,8 +28,8 @@ const bn: Messages = {
   themeLight: "হালকা",
   themeDark: "গাঢ়",
   language: "ভাষা",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "ওপেন সোর্স",
   licenceTitle: "GNU General Public License, সংস্করণ ৩ বা পরবর্তী",
 };
 

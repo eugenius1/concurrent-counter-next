@@ -31,8 +31,8 @@ const pt: Messages = {
   themeLight: "Claro",
   themeDark: "Escuro",
   language: "Idioma",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "Código aberto",
   licenceTitle: "GNU General Public License, versão 3 ou posterior",
 };
 

@@ -28,8 +28,8 @@ const hi: Messages = {
   themeLight: "लाइट",
   themeDark: "डार्क",
   language: "भाषा",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "ओपन सोर्स",
   licenceTitle: "GNU General Public License, संस्करण 3 या बाद का",
 };
 

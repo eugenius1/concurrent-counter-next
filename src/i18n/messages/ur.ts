@@ -29,8 +29,8 @@ const ur: Messages = {
   themeLight: "ہلکا",
   themeDark: "گہرا",
   language: "زبان",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "اوپن سورس",
   licenceTitle: "GNU General Public License، ورژن 3 یا بعد کا",
 };
 
