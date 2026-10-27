@@ -18,6 +18,13 @@ npm run validate
 
 Lints, typechecks, runs every test and builds.
 
+## Before every push
+
+Strongly recommended: run `/simplify` (or your tool's equivalent clean-up
+pass) over the branch's changes, using Claude Sonnet or a model of similar
+strength, then commit its fixes and re-run `npm run validate`. It catches
+duplication, dead code and needless complexity that the checks don't.
+
 ## Attribution
 
 End every commit message with:
