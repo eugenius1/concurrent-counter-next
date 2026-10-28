@@ -30,8 +30,8 @@ const arz: Messages = {
   themeLight: "فاتح",
   themeDark: "غامق",
   language: "اللغة",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "مفتوح المصدر",
   licenceTitle: "GNU General Public License، الإصدار 3 أو أحدث",
 };
 

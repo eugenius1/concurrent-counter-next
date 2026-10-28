@@ -28,8 +28,8 @@ const ha: Messages = {
   themeLight: "Haske",
   themeDark: "Duhu",
   language: "Harshe",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "Buɗaɗɗen tushe",
   licenceTitle: "GNU General Public License, siga ta 3 ko ta gaba",
 };
 

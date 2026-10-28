@@ -30,8 +30,8 @@ const sw: Messages = {
   themeLight: "Angavu",
   themeDark: "Giza",
   language: "Lugha",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "Chanzo huria",
   licenceTitle: "GNU General Public License, toleo la 3 au la baadaye",
 };
 

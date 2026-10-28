@@ -20,10 +20,13 @@ export default function Copyright() {
         color: "text.secondary",
       }}
     >
-      {fill(m.copyright, { years: copyrightYears() })}
+      {fill(m.copyright, { years: copyrightYears() })}{" "}
+      <Link href="https://eusebius.tech/" color="inherit">
+        Eusebius Ngemera
+      </Link>
       {" · "}
       <Link
-        href="https://github.com/eugenius1/concurrent-counter-next/blob/main/LICENSE"
+        href="https://github.com/eugenius1/concurrent-counter-next"
         title={m.licenceTitle}
         color="inherit"
       >

@@ -25,8 +25,8 @@ const zh: Messages = {
   themeLight: "浅色",
   themeDark: "深色",
   language: "语言",
-  copyright: "© {years} Eusebius Ngemera",
-  licence: "GPLv3",
+  copyright: "© {years}",
+  licence: "开源",
   licenceTitle: "GNU General Public License，第 3 版或更高版本",
 };
 
