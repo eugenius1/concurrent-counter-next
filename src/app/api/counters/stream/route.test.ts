@@ -1,5 +1,6 @@
 /** @jest-environment node */
 import { GET } from "./route";
+import { readStream, sseFrame } from "@/__tests__/readStream";
 import { subscribeToCount, type CountListener } from "@/lib/counterCount";
 
 jest.mock("@/lib/counterCount", () => ({ subscribeToCount: jest.fn() }));
@@ -14,13 +15,7 @@ describe("GET /api/counters/stream", () => {
       signal: abort.signal,
     });
     const response = await GET(request);
-    const reader = response.body!.getReader();
-    const decoder = new TextDecoder();
-    const read = async () => {
-      const { value, done } = await reader.read();
-      return done ? null : decoder.decode(value);
-    };
-    return { response, read, abort };
+    return { response, read: readStream(response), abort };
   };
 
   beforeEach(() => {
@@ -36,10 +31,10 @@ describe("GET /api/counters/stream", () => {
     const { response, read, abort } = await open();
 
     expect(response.headers.get("Content-Type")).toBe("text/event-stream");
-    expect(await read()).toBe("event: count\ndata: 2\n\n");
+    expect(await read()).toBe(sseFrame("count", 2));
 
     listener.onCount(3);
-    expect(await read()).toBe("event: count\ndata: 3\n\n");
+    expect(await read()).toBe(sseFrame("count", 3));
 
     abort.abort();
   });
@@ -65,7 +60,7 @@ describe("GET /api/counters/stream", () => {
   });
 
   it("ends the stream when it can't subscribe", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    jest.spyOn(console, "error").mockImplementation();
     (subscribeToCount as jest.Mock).mockRejectedValue(
       new Error("connection refused"),
     );
@@ -73,6 +68,5 @@ describe("GET /api/counters/stream", () => {
     const { read } = await open();
 
     expect(await read()).toBeNull();
-    consoleSpy.mockRestore();
   });
 });

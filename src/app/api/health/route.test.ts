@@ -25,7 +25,7 @@ describe("Health Check API", () => {
   });
 
   it("should return 503 when the database is unreachable", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    jest.spyOn(console, "error").mockImplementation();
     (db as jest.Mock).mockRejectedValue(new Error("connection refused"));
 
     const response = await GET();
@@ -33,7 +33,5 @@ describe("Health Check API", () => {
 
     expect(response.status).toBe(503);
     expect(data).toHaveProperty("status", "unhealthy");
-
-    consoleSpy.mockRestore();
   });
 });

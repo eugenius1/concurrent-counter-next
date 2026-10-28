@@ -13,8 +13,7 @@ export default function Header() {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        px: 1,
-        py: 1,
+        p: 1,
       }}
     >
       {/* Box can't take Link as its component here: a server component

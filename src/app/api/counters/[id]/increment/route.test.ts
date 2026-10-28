@@ -32,10 +32,6 @@ describe("POST /api/counters/[id]/increment", () => {
     (db as jest.Mock).mockResolvedValue(sql);
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it.each([1, -1])("applies an increment of %d", async (by) => {
     const response = await increment(id, { by });
 

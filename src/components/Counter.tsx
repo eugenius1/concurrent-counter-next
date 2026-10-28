@@ -5,28 +5,17 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import { fill } from "@/i18n/format";
 import { useI18n } from "@/i18n/I18nProvider";
 import ErrorToast from "./ErrorToast";
+import { postWrite } from "./postWrite";
 
 export default function Counter({ id, value }: { id: string; value: string }) {
   const { m } = useI18n();
   const [error, setError] = useState("");
 
   // The new value arrives through the counter page's event stream
-  const updateCounter = async (incrementBy: number) => {
-    let rateLimited = false;
-    try {
-      const response = await fetch(`/api/counters/${id}/increment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ by: incrementBy }),
-      });
-      rateLimited = response.status === 429;
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-    } catch (error) {
-      console.error("Error updating counter:", error);
-      setError(rateLimited ? m.updateRateLimited : m.updateFailed);
-    }
+  const updateCounter = async (by: number) => {
+    const result = await postWrite(`/api/counters/${id}/increment`, { by });
+    if (result === "rateLimited") setError(m.updateRateLimited);
+    else if (result === "failed") setError(m.updateFailed);
   };
 
   return (
@@ -52,12 +41,7 @@ export default function Counter({ id, value }: { id: string; value: string }) {
         <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             variant="contained"
-            sx={{
-              bgcolor: "error.main",
-              "&:hover": {
-                bgcolor: "error.dark",
-              },
-            }}
+            color="error"
             onClick={() => updateCounter(-1)}
             startIcon={<RemoveIcon />}
           >
@@ -65,12 +49,7 @@ export default function Counter({ id, value }: { id: string; value: string }) {
           </Button>
           <Button
             variant="contained"
-            sx={{
-              bgcolor: "success.main",
-              "&:hover": {
-                bgcolor: "success.dark",
-              },
-            }}
+            color="success"
             onClick={() => updateCounter(1)}
             endIcon={<AddIcon />}
           >
