@@ -46,14 +46,13 @@ describe("Counter Component", () => {
     [429, "That's too many presses. Try again in a moment."],
     [500, "Couldn't update the counter. Try again later."],
   ])("tells the user when the update fails with %d", async (status, message) => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    jest.spyOn(console, "error").mockImplementation();
     mockFetch.mockResolvedValue({ ok: false, status });
 
     render(<Counter {...mockCounter} />);
     fireEvent.click(screen.getByText("Increase"));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(message);
-    consoleSpy.mockRestore();
   });
 
   it("logs an error when the update fails", async () => {
@@ -65,11 +64,9 @@ describe("Counter Component", () => {
 
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith(
-        "Error updating counter:",
+        `Error posting to /api/counters/${mockCounter.id}/increment:`,
         expect.any(Error),
       );
     });
-
-    consoleSpy.mockRestore();
   });
 });

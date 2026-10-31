@@ -49,15 +49,20 @@ async function applySchema(sql: Sql) {
 /** Returns the client once the schema is in place. */
 export async function db(): Promise<Sql> {
   const sql = getSql();
-  if (!globalForDb.schemaReady) {
-    globalForDb.schemaReady = applySchema(sql).catch((error) => {
-      // Retry on the next call rather than caching the failure
-      globalForDb.schemaReady = undefined;
-      throw error;
-    });
-  }
-  await globalForDb.schemaReady;
+  await (globalForDb.schemaReady ??= applySchema(sql).catch((error) => {
+    // Retry on the next call rather than caching the failure
+    globalForDb.schemaReady = undefined;
+    throw error;
+  }));
   return sql;
+}
+
+export async function getCounter(id: string): Promise<Counter | undefined> {
+  const sql = await db();
+  const [counter] = await sql<Counter[]>`
+    SELECT id, value FROM counters WHERE id = ${id}
+  `;
+  return counter;
 }
 
 const ULID_PATTERN = /^[0-9A-HJKMNP-TV-Z]{26}$/;
