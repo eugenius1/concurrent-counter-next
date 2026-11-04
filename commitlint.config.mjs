@@ -1,4 +1,4 @@
-export default {
+const config = {
   extends: ['@commitlint/config-conventional'],
   rules: {
     // Dependabot's commit bodies have a long first line that scales with the group and directory
@@ -6,3 +6,5 @@ export default {
     'body-max-line-length': [2, 'always', 120],
   },
 };
+
+export default config;
