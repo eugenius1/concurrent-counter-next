@@ -142,7 +142,7 @@ describe("subscribeToCount", () => {
   });
 
   it("drops its listeners when the count can't be read, then recovers", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    jest.spyOn(console, "error").mockImplementation();
     sql.mockRejectedValue(new Error("connection refused"));
 
     const first = await listen();
@@ -156,7 +156,6 @@ describe("subscribeToCount", () => {
 
     expect(second.onCount.mock.calls).toEqual([[2]]);
     expect(first.onCount).not.toHaveBeenCalled();
-    consoleSpy.mockRestore();
   });
 
   it("subscribes again after failing to", async () => {

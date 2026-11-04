@@ -39,7 +39,6 @@ export default function Providers({
       }
     >
       <ThemeProvider theme={rtl ? rtlTheme : theme}>
-        {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
         <I18nProvider locale={locale} messages={messages}>
           {children}

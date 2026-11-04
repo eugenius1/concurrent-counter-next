@@ -56,14 +56,13 @@ describe("CounterPage Component", () => {
   });
 
   it("says so when the link can't be copied", async () => {
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+    jest.spyOn(console, "error").mockImplementation();
     writeText.mockRejectedValue(new Error("denied"));
 
     renderPage();
     fireEvent.click(screen.getByText("Copy link"));
 
     expect(await screen.findByText(/Couldn't copy the link/)).toBeInTheDocument();
-    consoleSpy.mockRestore();
   });
 
   it("puts Share before Copy link", () => {

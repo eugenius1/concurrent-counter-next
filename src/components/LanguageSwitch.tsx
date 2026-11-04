@@ -1,10 +1,7 @@
 "use client";
 import * as React from "react";
 import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import Tooltip from "@mui/material/Tooltip";
 import TranslateOutlined from "@mui/icons-material/TranslateOutlined";
 import { useI18n } from "@/i18n/I18nProvider";
 import {
@@ -13,6 +10,7 @@ import {
   menuOrder,
   type Locale,
 } from "@/i18n/locales";
+import HeaderMenu from "./HeaderMenu";
 
 /** Keeps the choice for a year, for the server to read on the next load. */
 function rememberLocale(locale: Locale) {
@@ -21,13 +19,12 @@ function rememberLocale(locale: Locale) {
 
 export default function LanguageSwitch() {
   const { locale, m } = useI18n();
-  const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
   // Worked out when the menu opens: the browser's languages aren't known on
   // the server
   const [order, setOrder] = React.useState(() => menuOrder([]));
 
-  const choose = (chosen: Locale) => {
-    setAnchor(null);
+  const choose = (chosen: Locale, close: () => void) => {
+    close();
     if (chosen === locale) return;
     rememberLocale(chosen);
     // A full load, not a refresh: the direction of the styles is fixed when
@@ -35,48 +32,31 @@ export default function LanguageSwitch() {
     window.location.reload();
   };
 
-  const item = (code: Locale) => (
+  const item = (code: Locale, close: () => void) => (
     // Each name is in its own language, whatever the page is in
     <MenuItem
       key={code}
       lang={code}
       role="menuitemradio"
       selected={code === locale}
-      onClick={() => choose(code)}
+      onClick={() => choose(code, close)}
     >
       {localeName(code)}
     </MenuItem>
   );
 
   return (
-    <>
-      <Tooltip title={m.language}>
-        <IconButton
-          aria-label={m.language}
-          aria-haspopup="menu"
-          aria-controls={anchor ? "language-menu" : undefined}
-          aria-expanded={anchor ? "true" : undefined}
-          color="inherit"
-          onClick={(event) => {
-            setOrder(menuOrder(navigator.languages ?? []));
-            setAnchor(event.currentTarget);
-          }}
-        >
-          <TranslateOutlined />
-        </IconButton>
-      </Tooltip>
-      <Menu
-        id="language-menu"
-        anchorEl={anchor}
-        open={Boolean(anchor)}
-        onClose={() => setAnchor(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        {order.pinned.map(item)}
-        <Divider />
-        {order.rest.map(item)}
-      </Menu>
-    </>
+    <HeaderMenu
+      id="language-menu"
+      label={m.language}
+      icon={<TranslateOutlined />}
+      onOpen={() => setOrder(menuOrder(navigator.languages ?? []))}
+    >
+      {(close) => [
+        ...order.pinned.map((code) => item(code, close)),
+        <Divider key="divider" />,
+        ...order.rest.map((code) => item(code, close)),
+      ]}
+    </HeaderMenu>
   );
 }

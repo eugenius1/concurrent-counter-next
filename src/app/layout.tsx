@@ -1,5 +1,8 @@
 import * as React from "react";
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
+import Copyright from "@/components/Copyright";
 import Header from "@/components/Header";
 import Providers from "@/components/Providers";
 import { localeDir } from "@/i18n/locales";
@@ -22,7 +25,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         <InitColorSchemeScript attribute="class" />
         <Providers locale={locale} messages={messages}>
           <Header />
-          {props.children}
+          <Container maxWidth="md" sx={{ py: 4 }}>
+            {props.children}
+            <Box component="footer" sx={{ mt: 8, mb: 4 }}>
+              <Copyright />
+            </Box>
+          </Container>
         </Providers>
       </body>
     </html>

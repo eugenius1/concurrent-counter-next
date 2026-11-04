@@ -28,14 +28,19 @@ export const LOCALES = [
   { code: "te", name: "తెలుగు" },
   { code: "sw", name: "Kiswahili" },
   { code: "ha", name: "Hausa" },
-] as const satisfies readonly {
+] as const satisfies readonly LocaleEntry[];
+
+interface LocaleEntry {
   code: string;
   name: string;
   dir?: "rtl";
   intl?: string;
-}[];
+}
 
 export type Locale = (typeof LOCALES)[number]["code"];
+
+const entry = (locale: Locale): LocaleEntry =>
+  LOCALES.find(({ code }) => code === locale)!;
 
 export const DEFAULT_LOCALE: Locale = "en";
 
@@ -47,17 +52,15 @@ export function isLocale(value: unknown): value is Locale {
 }
 
 export function localeDir(locale: Locale): "ltr" | "rtl" {
-  const found = LOCALES.find((l) => l.code === locale);
-  return found && "dir" in found ? found.dir : "ltr";
+  return entry(locale).dir ?? "ltr";
 }
 
 export function intlTag(locale: Locale): string {
-  const found = LOCALES.find((l) => l.code === locale);
-  return found && "intl" in found ? found.intl : locale;
+  return entry(locale).intl ?? locale;
 }
 
 /** The translation for one language tag a browser sent, if there is one. */
-export function forTag(tag: string): Locale | undefined {
+function forTag(tag: string): Locale | undefined {
   const lower = tag.toLowerCase();
   // Egypt's Arabic has its own translation; every other Arabic gets Standard.
   // A script may come before the region and extensions after it.
@@ -116,5 +119,5 @@ export function menuOrder(browserTags: readonly string[]): {
 }
 
 export function localeName(locale: Locale): string {
-  return LOCALES.find(({ code }) => code === locale)!.name;
+  return entry(locale).name;
 }

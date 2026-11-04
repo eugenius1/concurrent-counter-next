@@ -43,7 +43,30 @@ describe("subscribeToCounters", () => {
       expect(working[callback]).toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalled();
       unsubscribes.forEach((unsubscribe) => unsubscribe());
-      consoleSpy.mockRestore();
     },
   );
+
+  it("sends a change only to that counter's subscribers and those of every counter", async () => {
+    const own = { id: change.id, onChange: jest.fn(), onReset: jest.fn() };
+    const other = {
+      id: "01HQ8XVNZ8YRTKP6QXDJ8W12N4",
+      onChange: jest.fn(),
+      onReset: jest.fn(),
+    };
+    const all = { onChange: jest.fn(), onReset: jest.fn() };
+    const unsubscribes = await Promise.all(
+      [own, other, all].map((subscriber) => subscribeToCounters(subscriber)),
+    );
+
+    notify(JSON.stringify(change));
+    reconnected();
+
+    expect(own.onChange).toHaveBeenCalledWith(change);
+    expect(all.onChange).toHaveBeenCalledWith(change);
+    expect(other.onChange).not.toHaveBeenCalled();
+    [own, other, all].forEach(({ onReset }) =>
+      expect(onReset).toHaveBeenCalled(),
+    );
+    unsubscribes.forEach((unsubscribe) => unsubscribe());
+  });
 });
